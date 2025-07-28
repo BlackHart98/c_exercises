@@ -64,10 +64,15 @@ void arena_deinit(Arena *arena){
 
 int main(int argc,  char* argv[]){
     Arena my_arena = arena_init(KB(1));
-    double* my_int_1 = arena_alloc(&my_arena, double, 10);
+    float* my_float_1 = arena_alloc(&my_arena, float, 10);
     int* my_int_2 = arena_alloc(&my_arena, int, 1);
     printf("base address %p\n", my_arena.base_address);
-    printf("first init %p\n", my_int_1);
+    printf("first init %p\n", my_float_1);
     printf("second init %p\n", my_int_2);
+
+    my_float_1[0] = 4.5f;
+
+    printf("get item %f\n", my_float_1[0]);
+    printf("get int item %d\n", my_int_2[0]);
     return 0;
 }
