@@ -7,10 +7,6 @@
 #define KB(byte)                        (byte * 1024)
 #define arena_alloc(arena, T, len)      arena_alloc_aligned(arena, len, sizeof(T), _Alignof(T))
 
-unsigned char is_power_of_two(uintptr_t x) {
-	return (x & (x-1)) == 0;
-}
-
 
 // linear allocator
 typedef struct {
