@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdalign.h>
 
-#define KB(byte)                        (byte * 1024)
+#define KB(byte)                        (byte * 1024UL)
 #define arena_alloc(arena, T, len)      arena_alloc_aligned(arena, len, sizeof(T), _Alignof(T))
 
 
@@ -26,7 +26,6 @@ Arena arena_init(size_t capacity){
 
 uintptr_t align_forward(uintptr_t ptr, uintptr_t alignment_){
     // Assume the aligment with always be a power of 2
-    // assert(is_power_of_two(alignment_));
     // check if the current offset is divisible by 2
     uintptr_t modulo = ptr & (alignment_ - 1);
     if (modulo != 0) ptr = ptr + alignment_ - modulo;
