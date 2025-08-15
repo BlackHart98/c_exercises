@@ -3,6 +3,10 @@
 #include <string.h> 
 
 
+#define stack_create(stack_hndl, T, capacity)    stack_array_create(stack_hndl, capacity, sizeof(T))
+
+
+
 typedef struct _stack_array_t{
     int top;
     int capacity;
@@ -21,7 +25,7 @@ void stack_array_pop(stack_array_t* stack);
 int main(int argc, char* argv[]){
     stack_array_t s;
     float x = 2.07f;
-    stack_array_create(&s, 2, sizeof(float));
+    stack_create(&s, float, 2);
     stack_array_push(&s, &x);
     
     float* val = stack_array_peek(&s);
@@ -33,6 +37,7 @@ int main(int argc, char* argv[]){
     if (stack_array_peek(&s) == NULL) printf("Stack is empty\n");
 
     stack_array_destroy(&s);
+
     return 0;
 }
 
