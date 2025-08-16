@@ -11,7 +11,7 @@ typedef struct _stack_array_t{
     int top;
     int capacity;
     size_t nbytes;
-    void** content;
+    unsigned char* content;
 } stack_array_t;
 
 
@@ -46,7 +46,7 @@ void stack_array_create(stack_array_t* stack, int capacity, size_t nbytes){
     stack->top = -1;
     stack->capacity = capacity;
     stack->nbytes = nbytes;
-    stack->content = (void* *) malloc(sizeof(void*) * capacity);
+    stack->content = (unsigned char *) malloc(nbytes * capacity);
 }
 
 
@@ -62,14 +62,13 @@ void stack_array_destroy(stack_array_t* stack){
 void stack_array_push(stack_array_t* stack, void* item){
     if (stack->top == stack->capacity) return;
     stack->top++;
-    stack->content[stack->top] = malloc(stack->nbytes);
-    memcpy(&(stack->content[stack->top]), &item, stack->nbytes);
+    memcpy(stack->content + (stack->top * stack->nbytes), item, stack->nbytes);
 }
 
 
 void* stack_array_peek(stack_array_t* stack){
     if (stack->top == -1) return NULL;
-    return stack->content[stack->top];
+    return stack->content + (stack->top * stack->nbytes);
 }
 
 
