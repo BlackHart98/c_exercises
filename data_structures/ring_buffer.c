@@ -55,7 +55,6 @@ int ring_buffer_enqueue(ring_buffer_t * ring_buffer, int item){
     int next_idx = ((ring_buffer->write_head + 1) % BUFFER_SIZE);
     if (next_idx == ring_buffer->read_head) return -1;
     ring_buffer->buffer[ring_buffer->write_head] = item;
-    ring_buffer->write_head++;
     ring_buffer->write_head = next_idx;
     return 1;
 }
