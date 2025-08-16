@@ -45,8 +45,7 @@ void ring_buffer_create(ring_buffer_t * ring_buffer){
 
 int ring_buffer_dequeue(ring_buffer_t * ring_buffer){
     if (ring_buffer->read_head == ring_buffer->write_head) return -1;
-    ring_buffer->read_head++;
-    ring_buffer->read_head %= BUFFER_SIZE;
+    ring_buffer->read_head = ((ring_buffer->read_head + 1) % BUFFER_SIZE);
     return 1;
 }
 
