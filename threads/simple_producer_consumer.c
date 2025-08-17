@@ -47,7 +47,7 @@ int main(int argc, char* argv[]){
 
 
 void ring_buffer_create(ring_buffer_t * ring_buffer){
-    assert((BUFFER_SIZE > 1)&&"Ring buffer must be greater than 1!");
+    assert((BUFFER_SIZE > 1)&&"Ring buffer queue size must be greater than 1!");
     ring_buffer->read_head = 0;
     ring_buffer->write_head = 0;
     pthread_mutex_init(&ring_buffer->ring_buffer_mutex, NULL);
