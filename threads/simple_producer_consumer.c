@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <assert.h>
 
-#define BUFFER_SIZE 2
+#define BUFFER_SIZE 3
 #define len(T, obj) (sizeof(obj)/sizeof(T))
 
 // lock-based ring buffer
