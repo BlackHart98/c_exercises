@@ -47,6 +47,8 @@ int main(int argc, char * argv[]){
     if (my_signal.result != SENTINEL){
         printf("Here is the thread succeeded with the result #%d\n", my_signal.result);
     }
+
+    signal_destroy(&my_signal);
     return 0;
 }
 
