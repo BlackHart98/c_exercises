@@ -8,20 +8,24 @@
 
 #define MAX_THREADS 4
 #define SENTINEL -1
+#define ARB_PEEK_COUNT 1
 
 typedef struct _signal_t{
     int flag;
     int result;
     pthread_mutex_t mutex;
+    pthread_cond_t winner;
 } signal_t;
 
 
 void signal_create(signal_t *);
+void signal_destroy(signal_t *);
 
 void * do_something(void *);
 
 
 int main(int argc, char * argv[]){
+    srand(time(NULL));
     pthread_t worker_thread[MAX_THREADS];
     signal_t my_signal;
     signal_create(&my_signal);
@@ -29,6 +33,12 @@ int main(int argc, char * argv[]){
         printf("hello world! some_signal thread #%d\n", i);
         pthread_create(&worker_thread[i], NULL, do_something, (void *)&my_signal);
     }
+
+    pthread_mutex_lock(&(my_signal.mutex));
+    while(my_signal.result == SENTINEL)
+        pthread_cond_wait(&(my_signal.winner), &(my_signal.mutex));
+    int result = my_signal.result;
+    pthread_mutex_unlock(&(my_signal.mutex));
 
     for (int i = 0; i < MAX_THREADS; i++){
         pthread_join(worker_thread[i], NULL);
@@ -44,12 +54,16 @@ int main(int argc, char * argv[]){
 void * do_something(void * arg){
     assert((arg != NULL)&&"arg should not be NULL");
     signal_t * some_signal = (signal_t *) arg;
-    // sleep(2); // doing some work
+
+    // check if flag is hit before proceeding the process
+    sleep(rand() % 5); // doing some work
+
     pthread_mutex_lock(&(some_signal->mutex));
     if (!some_signal->flag){
         some_signal->result = (int)6;
         some_signal->flag = 1;
         printf("Winner winner chicken dinner!\n");
+        pthread_cond_broadcast(&some_signal->winner);
     } else {
         printf("Damn I couldn't acquire the lock on time\n");
     }
@@ -62,5 +76,11 @@ void signal_create(signal_t * my_signal){
     my_signal->flag = 0;
     my_signal->result = SENTINEL;
     pthread_mutex_init(&(my_signal->mutex), NULL);
+    pthread_cond_init(&(my_signal->winner), NULL);
 }
 
+void signal_destroy(signal_t * my_signal){
+    my_signal->flag = 0;
+    my_signal->result = SENTINEL;
+    pthread_mutex_destroy(&my_signal->mutex);
+}
