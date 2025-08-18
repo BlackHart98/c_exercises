@@ -22,6 +22,7 @@ int ring_buffer_empty(const ring_buffer_t *);
 int ring_buffer_full(const ring_buffer_t *);
 void enqueue(ring_buffer_t *, int);
 void dequeue(ring_buffer_t *, int *);
+void ring_buffer_destroy(ring_buffer_t *);
 
 
 // producer-consumer
@@ -42,6 +43,8 @@ int main(int argc, char* argv[]){
 
     pthread_join(producer_thread, NULL);
     pthread_join(consumer_thread, NULL);
+
+    ring_buffer_destroy(&shared_buffer);
     return 0;
 }
 
@@ -67,6 +70,16 @@ int ring_buffer_empty(const ring_buffer_t * ring_buffer){
     if (ring_buffer->write_head == ring_buffer->read_head) return 1;
     return 0;
 }
+
+
+void ring_buffer_destroy(ring_buffer_t * ring_buffer){
+    ring_buffer->read_head = 0;
+    ring_buffer->write_head = 0;
+    pthread_mutex_destroy(&ring_buffer->ring_buffer_mutex);
+    pthread_cond_destroy(&ring_buffer->is_empty);
+    pthread_cond_destroy(&ring_buffer->is_full);
+}
+
 
 
 void enqueue(ring_buffer_t * ring_buffer, int item){
