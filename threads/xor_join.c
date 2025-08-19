@@ -13,7 +13,6 @@ typedef struct _signal_t{
     int flag;
     int result;
     pthread_mutex_t mutex;
-    pthread_cond_t winner;
 } signal_t;
 
 
@@ -32,11 +31,6 @@ int main(int argc, char * argv[]){
         printf("hello world! some_signal thread #%d\n", i);
         pthread_create(&worker_thread[i], NULL, do_something, (void *)&my_signal);
     }
-    pthread_mutex_lock(&(my_signal.mutex));
-        while(!my_signal.flag)
-            pthread_cond_wait(&(my_signal.winner), &(my_signal.mutex));
-        int result = my_signal.result;
-    pthread_mutex_unlock(&(my_signal.mutex));
 
     for (int i = 0; i < MAX_THREADS; i++){
         pthread_join(worker_thread[i], NULL);
@@ -44,6 +38,8 @@ int main(int argc, char * argv[]){
 
     if (my_signal.result != SENTINEL){
         printf("Here is the thread succeeded with the result #%d\n", my_signal.result);
+    } else {
+        printf("No winner found\n");
     }
 
     signal_destroy(&my_signal);
@@ -68,7 +64,6 @@ void * do_something(void * arg){
             some_signal->result = (int)6;
             some_signal->flag = 1;
             printf("Winner winner chicken dinner!\n");
-            pthread_cond_signal(&some_signal->winner);
         } else {
             printf("Damn I couldn't acquire the lock on time\n");
         }
@@ -81,12 +76,10 @@ void signal_create(signal_t * my_signal){
     my_signal->flag = 0;
     my_signal->result = SENTINEL;
     pthread_mutex_init(&(my_signal->mutex), NULL);
-    pthread_cond_init(&(my_signal->winner), NULL);
 }
 
 void signal_destroy(signal_t * my_signal){
     my_signal->flag = 0;
     my_signal->result = SENTINEL;
     pthread_mutex_destroy(&my_signal->mutex);
-    pthread_cond_destroy(&(my_signal->winner));
 }
