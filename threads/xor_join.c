@@ -6,9 +6,8 @@
 #include <time.h>
 #include <assert.h>
 
-#define MAX_THREADS 4
+#define MAX_THREADS 100
 #define SENTINEL -1
-#define ARB_PEEK_COUNT 1
 
 typedef struct _signal_t{
     int flag;
@@ -34,12 +33,6 @@ int main(int argc, char * argv[]){
         pthread_create(&worker_thread[i], NULL, do_something, (void *)&my_signal);
     }
 
-    pthread_mutex_lock(&(my_signal.mutex));
-    while(my_signal.result == SENTINEL)
-        pthread_cond_wait(&(my_signal.winner), &(my_signal.mutex));
-    int result = my_signal.result;
-    pthread_mutex_unlock(&(my_signal.mutex));
-
     for (int i = 0; i < MAX_THREADS; i++){
         pthread_join(worker_thread[i], NULL);
     }
@@ -58,17 +51,21 @@ void * do_something(void * arg){
     signal_t * some_signal = (signal_t *) arg;
 
     // check if flag is hit before proceeding the process
+    pthread_mutex_lock(&some_signal->mutex);
+        int done = some_signal->flag;
+    pthread_mutex_unlock(&some_signal->mutex);
+    if (done) return NULL;
+
     sleep(rand() % 5); // doing some work
 
     pthread_mutex_lock(&(some_signal->mutex));
-    if (!some_signal->flag){
-        some_signal->result = (int)6;
-        some_signal->flag = 1;
-        printf("Winner winner chicken dinner!\n");
-        pthread_cond_broadcast(&some_signal->winner);
-    } else {
-        printf("Damn I couldn't acquire the lock on time\n");
-    }
+        if (!some_signal->flag){
+            some_signal->result = (int)6;
+            some_signal->flag = 1;
+            printf("Winner winner chicken dinner!\n");
+        } else {
+            printf("Damn I couldn't acquire the lock on time\n");
+        }
     pthread_mutex_unlock(&(some_signal->mutex));
     return NULL;
     
@@ -85,4 +82,5 @@ void signal_destroy(signal_t * my_signal){
     my_signal->flag = 0;
     my_signal->result = SENTINEL;
     pthread_mutex_destroy(&my_signal->mutex);
+    pthread_cond_destroy(&(my_signal->winner));
 }
