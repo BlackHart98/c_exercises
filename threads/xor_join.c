@@ -32,6 +32,11 @@ int main(int argc, char * argv[]){
         printf("hello world! some_signal thread #%d\n", i);
         pthread_create(&worker_thread[i], NULL, do_something, (void *)&my_signal);
     }
+    pthread_mutex_lock(&(my_signal.mutex));
+        while(!my_signal.flag)
+            pthread_cond_wait(&(my_signal.winner), &(my_signal.mutex));
+        int result = my_signal.result;
+    pthread_mutex_unlock(&(my_signal.mutex));
 
     for (int i = 0; i < MAX_THREADS; i++){
         pthread_join(worker_thread[i], NULL);
@@ -63,6 +68,7 @@ void * do_something(void * arg){
             some_signal->result = (int)6;
             some_signal->flag = 1;
             printf("Winner winner chicken dinner!\n");
+            pthread_cond_signal(&some_signal->winner);
         } else {
             printf("Damn I couldn't acquire the lock on time\n");
         }
