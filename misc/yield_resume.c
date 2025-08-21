@@ -47,7 +47,7 @@ struct _generator{
 
 
 
-void generator_create(generator_t *, void * (*func)(generator_t *, void *), void *, size_t, jmp_buf);
+void generator_create(generator_t *, void (*func)(generator_t *, void *), void *, size_t, jmp_buf);
 void generate(generator_t *, void * (*func)(generator_t *, void *), void *);
 void generator_stack_push(generator_t *, jmp_buf);
 void generator_stack_pop(generator_t *);
@@ -56,7 +56,7 @@ void generator_next(generator_t *, void *, jmp_buf);
 void generator_stop(generator_t *);
 
 
-void * foo(generator_t * generator, void * args){
+void foo(generator_t * generator, void * args){
     int * foobar = (int *) args;
     printf("argument is #%d!\n", *foobar);
     int some_result = *foobar;
@@ -65,7 +65,6 @@ void * foo(generator_t * generator, void * args){
         yield(generator, some_result);
     }
     end_generator(generator);
-    return NULL;
 }
 
 // We have Generators at home
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]){
 
 void generator_create(
     generator_t * generator
-    , void *func(generator_t *, void *)
+    , void (*func)(generator_t *, void *)
     , void * args, size_t ret_bytes
     , jmp_buf base_buf
 ){
