@@ -1,12 +1,5 @@
-// Generator primitives to be implemented in ASM
-// mark -> mark the current stack position (setjmp)
-// suspend -> suspend execution (YIELD)
-// fail -> indicate generator failure (??)
-// drive -> revive the most recently suspended generator (NEXT)
-// unmark -> remove generator information from the stack exit
-
-
-// I want to start simple (simulating yield using setjmp.h)
+// simulating yield-next generator with setjmp.h
+// This is just for learning purposes
 #include <stdio.h>
 #include <stdint.h>
 #include <setjmp.h>
@@ -17,14 +10,20 @@
 #define MAX_STACK_SIZE 1024
 
 
-#define next() 0
-#define yield() 0
+#define next(generator, result) \
+    if (!setjmp(generator.current_env)) \
+        generator_next(&generator, &result, generator.current_env); 
 
-// In python we say
-// def foo(*args, **kwargs) -> Generator[_T]:
-//      yield value
+#define yield(generator, result) \
+    jmp_buf new_buf;\
+    if (!setjmp(new_buf)) \
+        generator_yield(&(*generator), (void *)&result, new_buf); 
 
-// next(gen_obj)
+#define end_generator(generator) \
+    generator->state = 0; \
+    if (!generator->state) generator_stop(&(*generator)); \
+    else assert(0); 
+
 
 
 
@@ -57,39 +56,32 @@ void * foo(generator_t * generator, void * args){
     int some_result = *foobar;
     for(int i = 0; i < 3; i++){
         some_result += 1;
-        jmp_buf new_buf;
-        if (!setjmp(generator->current_env)){
-            generator_yield(&(*generator), (void *)&some_result, generator->current_env); // yield to the calling the program
-        }
+        yield(generator, some_result);
     }
-    generator->state = 0;
-    if (!generator->state) {
-        generator_stop(&(*generator));
-    }
-
-    // here should be unreachable
-    printf("Should not print this\n");
+    end_generator(generator);
     return NULL;
 }
 
-
+// We have Generators at home
+// The generator: 😅
 int main(int argc, char* argv[]){
     generator_t my_generator;
 
-    int some_num = 50;
+    int some_num = 55;
     if (!setjmp(my_generator.current_env))
         generator_create(&my_generator, foo, &some_num, sizeof(int), my_generator.current_env);
+    
     int result;
     printf("Yielded to the main function.\n");
-    if (!setjmp(my_generator.current_env))
-        generator_next(&my_generator, &result, my_generator.current_env);
+    next(my_generator, result);
+
     printf("Yielded to the main function again.\n");
     printf("Result from the generator next = #%d.\n", result);
-    if (!setjmp(my_generator.current_env))
-        generator_next(&my_generator, &result, my_generator.current_env);
+    next(my_generator, result);
+
     printf("Result from the generator next next = #%d.\n", result);
-    if (!setjmp(my_generator.current_env))
-        generator_next(&my_generator, &result, my_generator.current_env);
+    next(my_generator, result);
+
     printf("Result from the generator next next next = #%d.\n", result);
     return 0;
 }
