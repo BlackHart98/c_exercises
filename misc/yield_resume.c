@@ -52,20 +52,17 @@ void generator_stop(generator_t *);
 
 void * foo(generator_t * generator, void * args){
     int * foobar = (int *) args;
-    printf("thank you #%d!\n", *foobar);
+    printf("argument is #%d!\n", *foobar);
     int some_result = *foobar;
-    for(int i = 0; i < 2; i++){
+    for(int i = 0; i < 3; i++){
         some_result += 1;
         jmp_buf new_buf;
         if (!setjmp(new_buf)){
-            printf("Got here======!\n");
             generator_yield(&(*generator), (void *)&some_result, new_buf); // yield to the calling the program
         }
-        printf("Got here!\n");
     }
     generator->state = 0;
     if (!generator->state) {
-        printf("Get out!\n");
         generator_stop(&(*generator));
     }
 
@@ -92,6 +89,7 @@ int main(int argc, char* argv[]){
     printf("Result from the generator next next = #%d.\n", result);
     if (!setjmp(base_buf))
         generator_next(&my_generator, &result, base_buf);
+    printf("Result from the generator next next next = #%d.\n", result);
     return 0;
 }
 
