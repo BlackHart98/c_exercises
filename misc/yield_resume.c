@@ -36,6 +36,7 @@ struct _generator{
     int top;
     size_t ret_bytes;
     void * result;
+    jmp_buf current_env;
     jmp_buf snapshot[MAX_STACK_SIZE];
 };
 
@@ -74,21 +75,21 @@ void * foo(generator_t * generator, void * args){
 
 int main(int argc, char* argv[]){
     generator_t my_generator;
+
     int some_num = 50;
-    jmp_buf base_buf;
-    if (!setjmp(base_buf))
-        generator_create(&my_generator, foo, &some_num, sizeof(int), base_buf);
+    if (!setjmp(my_generator.current_env))
+        generator_create(&my_generator, foo, &some_num, sizeof(int), my_generator.current_env);
     int result;
     printf("Yielded to the main function.\n");
-    if (!setjmp(base_buf))
-        generator_next(&my_generator, &result, base_buf);
+    if (!setjmp(my_generator.current_env))
+        generator_next(&my_generator, &result, my_generator.current_env);
     printf("Yielded to the main function again.\n");
     printf("Result from the generator next = #%d.\n", result);
-    if (!setjmp(base_buf))
-        generator_next(&my_generator, &result, base_buf);
+    if (!setjmp(my_generator.current_env))
+        generator_next(&my_generator, &result, my_generator.current_env);
     printf("Result from the generator next next = #%d.\n", result);
-    if (!setjmp(base_buf))
-        generator_next(&my_generator, &result, base_buf);
+    if (!setjmp(my_generator.current_env))
+        generator_next(&my_generator, &result, my_generator.current_env);
     printf("Result from the generator next next next = #%d.\n", result);
     return 0;
 }
