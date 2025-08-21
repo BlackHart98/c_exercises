@@ -1,5 +1,5 @@
 // simulating yield-next generator with setjmp.h
-// This is just for learning purposes
+// This is just for learning purposes (it's littered with bugs)
 #include <stdio.h>
 #include <stdint.h>
 #include <setjmp.h>
@@ -8,6 +8,12 @@
 
 
 #define MAX_STACK_SIZE 1024
+
+
+
+#define generator_init(generator, fn, args, type_) \
+    if (!setjmp(generator.current_env)) \
+        generator_create(&generator, fn, &args, sizeof(type_), generator.current_env); \
 
 
 #define next(generator, result) \
@@ -63,13 +69,12 @@ void * foo(generator_t * generator, void * args){
 }
 
 // We have Generators at home
-// The generator: 😅
+// The generator: 😅...
 int main(int argc, char* argv[]){
     generator_t my_generator;
-
     int some_num = 55;
-    if (!setjmp(my_generator.current_env))
-        generator_create(&my_generator, foo, &some_num, sizeof(int), my_generator.current_env);
+
+    generator_init(my_generator, foo, some_num, int);
     
     int result;
     printf("Yielded to the main function.\n");
