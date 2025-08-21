@@ -58,8 +58,8 @@ void * foo(generator_t * generator, void * args){
     for(int i = 0; i < 3; i++){
         some_result += 1;
         jmp_buf new_buf;
-        if (!setjmp(new_buf)){
-            generator_yield(&(*generator), (void *)&some_result, new_buf); // yield to the calling the program
+        if (!setjmp(generator->current_env)){
+            generator_yield(&(*generator), (void *)&some_result, generator->current_env); // yield to the calling the program
         }
     }
     generator->state = 0;
@@ -144,7 +144,6 @@ void generator_next(generator_t * generator, void * ret, jmp_buf base_buf){
     memcpy(ret, generator->result, generator->ret_bytes);
     jmp_buf * old_top;
     old_top = &generator->snapshot[generator->top];// caution here
-    // generator_stack_pop(&(*generator));
     generator_stack_push(&(*generator), base_buf);
     longjmp(*old_top, 1); // jmp to generator function
 }
