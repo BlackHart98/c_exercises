@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <stdalign.h>
 
 #define DEFAULT_ALIGNMENT               (2 * sizeof(void *))
 #define KB(byte)                        (byte * 1024UL)
