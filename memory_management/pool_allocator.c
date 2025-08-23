@@ -92,6 +92,7 @@ void pool_destroy(Pool * pool){
 }
 
 int main(int argc, char* argv[]){
-    printf("google========= #%lu \n", sizeof(Pool_Free_Node));
+    Pool my_pool;
+    pool_init(&my_pool, KB(1), 64, DEFAULT_ALIGNMENT);
     return 0;
 }
