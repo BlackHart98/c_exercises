@@ -5,7 +5,8 @@
 #include <stdalign.h>
 
 #define KB(byte)                        (byte * 1024UL)
-#define arena_alloc(arena, T, len)      arena_alloc_aligned(arena, len, sizeof(T), _Alignof(T))
+#define DEFAULT_ALIGNMENT               (2 * sizeof(void *))
+#define arena_alloc(arena, T, len)      arena_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
 
 
 // linear allocator
