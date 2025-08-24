@@ -38,12 +38,12 @@ uint8_t pool_init(Pool * pool, size_t capacity, size_t chunk_size, size_t chunk_
     pool->buffer = malloc(capacity);
     if(pool->buffer == NULL) return -1;
     uintptr_t start = align_forward((uintptr_t) pool->buffer, (uintptr_t)chunk_alignment);
-    uintptr_t initial_start = (uintptr_t)capacity;
+    uintptr_t initial_start = (uintptr_t)pool->buffer;
     capacity -= (size_t)(start - initial_start);
     chunk_size = (size_t)align_forward(chunk_size, chunk_alignment);
 
-    assert((chunk_size <= sizeof(void *))&&"Chunk size is too small");
-    assert((chunk_size >= capacity)&&"Chunk size bigger than capacity");
+    assert((chunk_size >= sizeof(Pool_Free_Node *))&&"Chunk size is too small");
+    assert((chunk_size <= capacity)&&"Chunk size bigger than capacity");
 
     pool->capacity = capacity;
     pool->chunk_size = chunk_size;
