@@ -94,5 +94,8 @@ void pool_destroy(Pool * pool){
 int main(int argc, char* argv[]){
     Pool my_pool;
     pool_init(&my_pool, KB(1), 64, DEFAULT_ALIGNMENT);
+
+    void * some_alloc = pool_alloc(&my_pool);
+    printf("here is the first allocation = #%p", some_alloc);
     return 0;
 }
