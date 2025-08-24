@@ -50,6 +50,7 @@ int main(int argc, char* argv[]){
 
 
 void ring_buffer_create(ring_buffer_t * ring_buffer){
+    static_assert((1 <= BUFFER_SIZE), "BUFFER_SIZE should be at least 1");
     assert((NULL != ring_buffer)&&"Ring buffer argument should not be not");
     ring_buffer->read_head = 0;
     ring_buffer->write_head = 0;
