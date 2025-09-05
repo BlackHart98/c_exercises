@@ -50,6 +50,7 @@ typedef struct subscriber_t {
 void broker_init(broker_t * my_broker);
 void broker_deinit(broker_t * my_broker);
 void subscribe(subscriber_t * my_subscriber, broker_t * my_broker, uint8_t topic);
+void subscriber_init(subscriber_t *);
 void unsubscribe(subscriber_t * my_subscriber, broker_t * my_broker, uint8_t topic);
 void publish(broker_t * my_broker, uint8_t topic, char * message);
 void get_subscribers(broker_t * my_broker, uint8_t topic_id, subscriber_t **);
@@ -75,6 +76,7 @@ void * process_messages(void * arg){
                 dequeue(&broker_ptr->ring_buffer[i], &message); 
                 for (int j = 0; j < broker_ptr->topics[i]; j++){
                     subscriber_t * sub = (subscriber_t *) broker_ptr->subscribers[i].sub_ids[j];
+                    sub->topic_id[i] = 1;
                     sub->message = message;
                 }
             }
@@ -95,7 +97,7 @@ int main(int argc, char * argv[]){
 
     subscriber_t s[3];
     for (int i = 0; i < 3; i++){
-        printf("Hey there\n");
+        subscriber_init(&s[i]);
     }
     subscribe(&s[0], &some_broker, 0);
     subscribe(&s[1], &some_broker, 1);
@@ -172,6 +174,13 @@ void broker_init(broker_t * my_broker){
         memset(my_broker->subscribers[i].sub_ids, 0, sizeof(void *) * MAX_SUBS);
     }
 }
+
+void subscriber_init(subscriber_t * my_subscriber){
+    my_subscriber->message = NULL;
+    for (int i = 0; i < MAX_TOPICS; i++)
+        my_subscriber->topic_id[i] = 0;
+}
+
 
 void broker_deinit(broker_t * my_broker){
     my_broker->subscribe_count = 0;
