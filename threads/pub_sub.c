@@ -56,7 +56,7 @@ void publish(broker_t * my_broker, uint8_t topic, char * message);
 void get_subscribers(broker_t * my_broker, uint8_t topic_id, subscriber_t **);
 
 
-void recieve_message(subscriber_t *, broker_t *);
+void recieve_message(const subscriber_t *);
 
 
 // This expected behaviour is to be stuck in busy waiting until any of the ring buffer is
@@ -101,7 +101,7 @@ int main(int argc, char * argv[]){
     }
     subscribe(&s[0], &some_broker, 0);
     subscribe(&s[1], &some_broker, 1);
-    subscribe(&s[2], &some_broker, 0);
+    subscribe(&s[2], &some_broker, 1);
 
     // process messages just broadcasts the message to the subscribers
     pthread_create(&some_thread, NULL, process_messages, (void *)&some_broker);
@@ -109,6 +109,10 @@ int main(int argc, char * argv[]){
     publish(&some_broker, 0, "Hello world");
     publish(&some_broker, 1, "Yet another hello world");
 
+
+    sleep(2);
+    recieve_message(&s[0]);
+    recieve_message(&s[2]);
 
     pthread_join(some_thread, NULL);
     broker_deinit(&some_broker);
@@ -221,5 +225,13 @@ void publish(broker_t * my_broker, uint8_t topic_id, char * message){
 void get_subscribers(broker_t * my_broker, uint8_t topic_id, subscriber_t ** subscribers){
     for (int i = 0; i < my_broker->topics[topic_id]; i++){
         subscribers[i] = (subscriber_t *)my_broker->subscribers[topic_id].sub_ids[i];
+    }
+}
+
+void recieve_message(const subscriber_t * my_subscriber){
+    for (int i = 0; i < MAX_TOPICS; i++){
+        if (my_subscriber->topic_id[i] != 0){
+            printf("Recieved: %s\n", my_subscriber->message);
+        }
     }
 }
