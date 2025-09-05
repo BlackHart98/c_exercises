@@ -101,7 +101,7 @@ int main(int argc, char * argv[]){
     subscribe(&s[1], &some_broker, 1);
     subscribe(&s[2], &some_broker, 0);
 
-    // process messages just relays the message to the subscribers
+    // process messages just broadcasts the message to the subscribers
     pthread_create(&some_thread, NULL, process_messages, (void *)&some_broker);
 
     publish(&some_broker, 0, "Hello world");
