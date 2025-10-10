@@ -230,7 +230,7 @@ void get_subscribers(broker_t * my_broker, uint8_t topic_id, subscriber_t ** sub
 
 void recieve_message(const subscriber_t * my_subscriber){
     for (int i = 0; i < MAX_TOPICS; i++){
-        if (my_subscriber->topic_id[i] != 0){
+        if (0 != my_subscriber->topic_id[i]){
             printf("Recieved: %s\n", my_subscriber->message);
         }
     }
