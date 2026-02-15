@@ -109,7 +109,7 @@ void generator_create(
 
 void generator_stack_push(generator_t * generator, jmp_buf item){
     assert(((generator->top + 1) < MAX_STACK_SIZE) && "Generator stack overflow");
-    memcpy(generator->snapshot[++(generator->top)], item, sizeof(jmp_buf));
+    memmove(generator->snapshot[++(generator->top)], item, sizeof(jmp_buf));
 }
 
 void generator_stack_pop(generator_t * generator){
@@ -137,7 +137,7 @@ void generator_next(generator_t * generator, void * ret, jmp_buf base_buf){
     printf("we are going to the next\n");
     if (!generator->state) 
         assert(0&&"Generator is dead!");
-    memcpy(ret, generator->result, generator->ret_bytes);
+    memmove(ret, generator->result, generator->ret_bytes);
     jmp_buf * old_top;
     old_top = &generator->snapshot[generator->top];// caution here
     generator_stack_push(&(*generator), base_buf);

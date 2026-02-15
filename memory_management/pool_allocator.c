@@ -14,7 +14,7 @@ struct Pool_Free_Node {
 };
 
 typedef struct _Pool{
-    unsigned char * buffer;
+    unsigned char *buffer;
     size_t capacity;
     size_t chunk_size;
 

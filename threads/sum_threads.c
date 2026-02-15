@@ -4,6 +4,7 @@
 
 #define len(T, obj) (sizeof(obj)/sizeof(T))
 #define MAX_THREADS 3
+#define NPAD 15
 
 void * partial_sum(void *);
 

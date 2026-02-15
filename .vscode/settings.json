@@ -2,6 +2,18 @@
     "files.associations": {
         "*.dbclient-js": "javascript",
         "stdio.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "stdalign.h": "c",
+        "stdatomic.h": "c",
+        "assert.h": "c",
+        "__bit_reference": "c",
+        "unordered_map": "c",
+        "bitset": "c",
+        "chrono": "c",
+        "__locale": "c",
+        "immintrin.h": "c",
+        "arm_neon.h": "c",
+        "sqlite3.h": "c",
+        "time.h": "c"
     }
 }
