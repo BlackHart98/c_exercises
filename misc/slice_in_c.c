@@ -85,7 +85,7 @@ main (int argc, char **argv)
 slice_t
 make_slice(void *object, size_t len_in_bytes)
 {
-    if (!object || len_in_bytes == 0) {return (slice_t){0};}
+    if (NULL == object || len_in_bytes == 0) {return (slice_t){0};}
     return (slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
@@ -98,7 +98,7 @@ make_const_slice(const char *object)
 {
     size_t len_in_bytes = 0;
     size_t i = 0;
-    if (!object) {return (const_slice_t){0};}
+    if (NULL == object) {return (const_slice_t){0};}
     while ('\0' != object[i]){i++;}
     len_in_bytes = i * sizeof(char) + 1;
     return (const_slice_t){
