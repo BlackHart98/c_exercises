@@ -13,14 +13,13 @@ typedef struct slice_t {
     size_t len_in_bytes;
 } slice_t;
 
-char JUNK_MEMORY = 0;
 
 
 slice_t
 make_slice(void *object, size_t len_in_bytes);
 
 
-// Edge case: For string literal, it's length include '\0', you have to promise to never char this slice
+// Edge case: For string literal, it's length include '\0', you have to promise to never change content in buf of this slice
 slice_t
 make_const_slice(char *object);
 
@@ -63,16 +62,14 @@ main (int argc, char **argv)
     char *str_literal = "Hello";
     const slice_t str_slice = make_const_slice(str_literal);
     printf ("=========== Const string iterator size (%lu) ==========\n", str_slice.len_in_bytes);
-    char *itr = BEGIN_ITR(str_slice, char);
-    for (; END_ITR(itr, str_slice, char); itr++){
+    for (char *itr = BEGIN_ITR(str_slice, char); END_ITR(itr, str_slice, char); itr++){
         printf ("iterator: %c\n", *itr);
     }
 
 
     slice_t oops_slice = make_slice(NULL, chunk_size * sizeof(float));
     printf ("=========== NULL iterator ==========\n");
-    float *oops = BEGIN_ITR(oops_slice, float);
-    for (; END_ITR(oops, oops_slice, float); oops++){
+    for (float *oops = BEGIN_ITR(oops_slice, float); END_ITR(oops, oops_slice, float); oops++){
         printf ("NULL iterator #%.2f\n", *oops);
     }
     return 0;
