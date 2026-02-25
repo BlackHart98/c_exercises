@@ -20,7 +20,7 @@ make_slice(void *array, size_t len_in_bytes);
 
 /*
 C is a mine field, 😂
-Here is a "we have slice" implementation in C
+Here is a "we have slice at home" implementation in C
 */
 int
 main (int argc, char **argv)
