@@ -14,6 +14,8 @@
 #define KB(byte)                                        (byte * 1024UL)
 #define DEFAULT_ALIGNMENT                               (2 * sizeof(void *))
 #define DEFAULT_PAGE_SIZE                               KB(2)
+#define MAX_ALIGNMENT                                   (64 * sizeof(void *))
+
 #define arena_alloc(arena, T, len)                      arena_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
 #define arena_allocator_alloc(arena, T, len)           arena_allocator_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
 #define arena_allocator_init_page_default(allocator, capacity)    arena_allocator_init(allocator, capacity, DEFAULT_PAGE_SIZE)
@@ -209,6 +211,7 @@ uintptr_t align_forward(uintptr_t ptr, uintptr_t alignment_){
 
 
 slice_t arena_alloc_aligned(Arena *arena, size_t len, size_t size_, size_t alignment_){
+    assert((MAX_ALIGNMENT > alignment_)&&"Exceeded maximum alignment (64 bytes)");
     uintptr_t curr_offset = (uintptr_t)arena->base_address + (uintptr_t)arena->offset;
     uintptr_t offset = align_forward(curr_offset, alignment_) - (uintptr_t) arena->base_address;
     // the we check if the arena can contain new item(s)
@@ -239,12 +242,16 @@ int main(int argc,  char* argv[]){
     ArenaAllocator my_arena = arena_allocator_init_page_default(c_allocator, KB(1));
 
     printf("This is my allocator I'd slap it everywhere possible\n");
-    slice_t my_float_1 = arena_allocator_alloc(&my_arena, float, 100000000); // my_float_1: []float
+    slice_t my_float_1 = arena_allocator_alloc(&my_arena, float, 10); // my_float_1: []float
     if (0 < my_float_1.len_in_bytes){
         printf("first init length %lu\n", GET_SLICE_LEN(my_float_1, float));
         float *ptr = (float *)(my_float_1.ptr);
         *ptr = 4.5f;
         printf("get item %.2f\n", ((float *)(my_float_1.ptr))[0]);
+
+        for (float *ptr = BEGIN_ITR(my_float_1, float); END_ITR(ptr, my_float_1, float); ptr++){
+            printf("get float <%.2f>\n", *ptr);
+        }
     }
     arena_allocator_deinit(&my_arena);
     return 0;
