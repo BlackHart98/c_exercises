@@ -29,3 +29,12 @@ fn addIntrinsic(input_array: []const i32, event_array: []const i32, result: []i3
     }
     return 1;
 }
+
+
+
+fn addIntrinsicSlide(input_array: []const i32, event_array: []const i32, result: []i32) u8 {
+    std.debug.assert(input_array.len == event_array.len and result.len == event_array.len);
+    var count: usize = 0;
+    while(false) : (count += 1) {}
+    return 1;
+}
