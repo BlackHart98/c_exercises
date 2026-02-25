@@ -20,7 +20,7 @@ slice_t
 make_slice(void *object, size_t len_in_bytes);
 
 
-// Edge case: For string literal, it's length include '\0'
+// Edge case: For string literal, it's length include '\0', you have to promise to never char this slice
 slice_t
 make_const_slice(char *object);
 
@@ -61,7 +61,7 @@ main (int argc, char **argv)
 
 
     char *str_literal = "Hello";
-    slice_t str_slice = make_const_slice(str_literal);
+    const slice_t str_slice = make_const_slice(str_literal);
     printf ("=========== Const string iterator size (%lu) ==========\n", str_slice.len_in_bytes);
     char *itr = BEGIN_ITR(str_slice, char);
     for (; END_ITR(itr, str_slice, char); itr++){
