@@ -20,6 +20,11 @@ slice_t
 make_slice(void *object, size_t len_in_bytes);
 
 
+// Edge case: For string literal, it's length include '\0'
+slice_t
+make_const_slice(char *object);
+
+
 /*
 C is a mine field, 😂
 Here is a "we have slice at home" implementation in C
@@ -55,6 +60,15 @@ main (int argc, char **argv)
     free(ya_slice.buf); // Caution this isn't how it should be used
 
 
+    char *str_literal = "Hello";
+    slice_t str_slice = make_const_slice(str_literal);
+    printf ("=========== Const string iterator size (%lu) ==========\n", str_slice.len_in_bytes);
+    char *itr = BEGIN_ITR(str_slice, char);
+    for (; END_ITR(itr, str_slice, char); itr++){
+        printf ("iterator: %c\n", *itr);
+    }
+
+
     slice_t oops_slice = make_slice(NULL, chunk_size * sizeof(float));
     printf ("=========== NULL iterator ==========\n");
     float *oops = BEGIN_ITR(oops_slice, float);
@@ -69,6 +83,20 @@ slice_t
 make_slice(void *object, size_t len_in_bytes)
 {
     assert((NULL  != object) &&"object can not be NULL");
+    return (slice_t){
+        .buf = object,
+        .len_in_bytes = len_in_bytes,
+    };
+}
+
+
+slice_t
+make_const_slice(char *object)
+{
+    assert((NULL  != object) &&"object can not be NULL");
+    int i = 0;
+    while ('\0' != object[i]){i++;}
+    size_t len_in_bytes = i * sizeof(char);
     return (slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,

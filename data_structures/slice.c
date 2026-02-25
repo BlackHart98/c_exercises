@@ -20,10 +20,28 @@ slice_t
 make_slice(void *object, size_t len_in_bytes);
 
 
+// Edge case: For string literal, it's length include '\0'
+slice_t
+make_const_slice(char *object);
+
 slice_t
 make_slice(void *object, size_t len_in_bytes)
 {
     assert((NULL  != object) &&"object can not be NULL");
+    return (slice_t){
+        .buf = object,
+        .len_in_bytes = len_in_bytes,
+    };
+}
+
+
+slice_t
+make_const_slice(char *object)
+{
+    assert((NULL  != object) &&"object can not be NULL");
+    int i = 0;
+    while ('\0' != object[i]){i++;}
+    size_t len_in_bytes = i * sizeof(char);
     return (slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
