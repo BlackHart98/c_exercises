@@ -16,7 +16,7 @@
 #define DEFAULT_PAGE_SIZE                               KB(2)
 #define arena_alloc(arena, T, len)                      arena_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
 #define arena_allocator_alloc(arena, T, len)           arena_allocator_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
-#define arena_linkedlist_init_page_default(capacity)    arena_linkedlist_init(capacity, DEFAULT_PAGE_SIZE)
+#define arena_allocator_init_page_default(capacity)    arena_allocator_init(capacity, DEFAULT_PAGE_SIZE)
 
 
 // Slice yippy!
@@ -69,13 +69,13 @@ slice_t arena_alloc_aligned(Arena *arena, size_t len, size_t size_, size_t align
 void arena_reset(Arena *arena);
 void arena_deinit(Arena *arena);
 
-ArenaAllocator arena_linkedlist_init(size_t capacity, size_t page_size);
-slice_t arena_allocator_alloc_aligned(ArenaAllocator *arena_linkedlist, size_t len, size_t size_, size_t alignment_);
-void arena_linkedlist_reset(ArenaAllocator *arena_linkedlist);
-void arena_linkedlist_deinit(ArenaAllocator *arena_linkedlist);
+ArenaAllocator arena_allocator_init(size_t capacity, size_t page_size);
+slice_t arena_allocator_alloc_aligned(ArenaAllocator *arena_allocator, size_t len, size_t size_, size_t alignment_);
+void arena_allocator_reset(ArenaAllocator *arena_allocator);
+void arena_allocator_deinit(ArenaAllocator *arena_allocator);
 
 
-ArenaAllocator arena_linkedlist_init(size_t capacity, size_t page_size){
+ArenaAllocator arena_allocator_init(size_t capacity, size_t page_size){
     assert((0 < page_size)&&"Page size should always be greater than zero");
     assert((0 < capacity)&&"Capacity should always be greater than zero");
     if (capacity < page_size){capacity = page_size;}
@@ -93,9 +93,9 @@ ArenaAllocator arena_linkedlist_init(size_t capacity, size_t page_size){
 }
 
 
-slice_t arena_allocator_alloc_aligned(ArenaAllocator *arena_linkedlist, size_t len, size_t size_, size_t alignment_){
-    assert((NULL != arena_linkedlist->linkedlist)&&"Arena allocator was not initialized");
-    ArenaLinkedNode *current_node = arena_linkedlist->linkedlist;
+slice_t arena_allocator_alloc_aligned(ArenaAllocator *arena_allocator, size_t len, size_t size_, size_t alignment_){
+    assert((NULL != arena_allocator->linkedlist)&&"Arena allocator was not initialized");
+    ArenaLinkedNode *current_node = arena_allocator->linkedlist;
     while (NULL != current_node->next){current_node = current_node->next;}
     slice_t result = arena_alloc_aligned(&(current_node->arena), len, size_, alignment_);
     if (!result.ptr){
@@ -103,8 +103,8 @@ slice_t arena_allocator_alloc_aligned(ArenaAllocator *arena_linkedlist, size_t l
         ArenaLinkedNode *new_node = malloc(sizeof(*current_node->next)); // hidden allocation
         if (NULL == new_node) return (slice_t){};
 
-        size_t page_allocation = arena_linkedlist->page_size;
-        while (page_allocation < size_ * len) page_allocation += arena_linkedlist->page_size;
+        size_t page_allocation = arena_allocator->page_size;
+        while (page_allocation < size_ * len) page_allocation += arena_allocator->page_size;
         Arena new_arena = arena_init(page_allocation);
         if (NULL == new_arena.base_address) return (slice_t){};
 
@@ -120,8 +120,8 @@ slice_t arena_allocator_alloc_aligned(ArenaAllocator *arena_linkedlist, size_t l
 }
 
 
-void arena_linkedlist_reset(ArenaAllocator *arena_linkedlist){
-    ArenaLinkedNode *current_node = arena_linkedlist->linkedlist;
+void arena_allocator_reset(ArenaAllocator *arena_allocator){
+    ArenaLinkedNode *current_node = arena_allocator->linkedlist;
     while (NULL != current_node){
         arena_reset(&(current_node->arena));
         current_node = current_node->next;
@@ -129,8 +129,8 @@ void arena_linkedlist_reset(ArenaAllocator *arena_linkedlist){
 }
 
 
-void arena_linkedlist_deinit(ArenaAllocator *arena_linkedlist){
-    ArenaLinkedNode *current_node = arena_linkedlist->linkedlist;
+void arena_allocator_deinit(ArenaAllocator *arena_allocator){
+    ArenaLinkedNode *current_node = arena_allocator->linkedlist;
     while(NULL != current_node){
         ArenaLinkedNode *temp_next = current_node->next;
         arena_deinit(&(current_node->arena));
@@ -194,7 +194,7 @@ void arena_deinit(Arena *arena){
 
 
 int main(int argc,  char* argv[]){
-    ArenaAllocator my_arena = arena_linkedlist_init_page_default(KB(1));
+    ArenaAllocator my_arena = arena_allocator_init_page_default(KB(1));
 
     printf("This is my allocator I'd slap it everywhere possible\n");
     slice_t my_float_1 = arena_allocator_alloc(&my_arena, float, 100000000);
@@ -204,6 +204,6 @@ int main(int argc,  char* argv[]){
         *ptr = 4.5f;
         printf("get item %.2f\n", ((float *)(my_float_1.ptr))[0]);
     }
-    arena_linkedlist_deinit(&my_arena);
+    arena_allocator_deinit(&my_arena);
     return 0;
 }
