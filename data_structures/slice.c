@@ -25,10 +25,40 @@ slice_t
 make_slice(void *object, size_t len_in_bytes);
 
 
+
+// Does not abort on NULL
+slice_t
+make_slice_relaxed(void *object, size_t len_in_bytes)
+{
+    if (!object || len_in_bytes == 0) {return (slice_t){0};}
+    return (slice_t){
+        .buf = object,
+        .len_in_bytes = len_in_bytes,
+    };
+}
+
+
+// Does not abort on NULL
+const_slice_t
+make_const_slice_relaxed(const char *object)
+{
+    size_t len_in_bytes = 0;
+    size_t i = 0;
+    if (!object) {return (const_slice_t){0};}
+    while ('\0' != object[i]){i++;}
+    len_in_bytes = i * sizeof(char) + 1;
+    return (const_slice_t){
+        .buf = object,
+        .len_in_bytes = len_in_bytes,
+    };
+}
+
+
+
 slice_t
 make_slice(void *object, size_t len_in_bytes)
 {
-    if (!object || len_in_bytes == 0) {return (slice_t){0};}
+    assert((NULL != object)&&"object can not be NULL");
     return (slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
@@ -39,9 +69,9 @@ make_slice(void *object, size_t len_in_bytes)
 const_slice_t
 make_const_slice(const char *object)
 {
+    assert((NULL != object)&&"object can not be NULL");
     size_t len_in_bytes = 0;
     size_t i = 0;
-    if (!object) {return (const_slice_t){0};}
     while ('\0' != object[i]){i++;}
     len_in_bytes = i * sizeof(char) + 1;
     return (const_slice_t){
