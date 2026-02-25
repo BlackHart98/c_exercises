@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #define GET_SLICE_LEN(slice, type_)  slice.len_in_bytes/sizeof(type_)
 #define BEGIN_ITR(slice, type_) (type_ *)slice.buf
@@ -12,6 +13,7 @@ typedef struct slice_t {
     size_t len_in_bytes;
 } slice_t;
 
+char JUNK_MEMORY = 0;
 
 
 slice_t
@@ -51,6 +53,14 @@ main (int argc, char **argv)
     }
 
     free(ya_slice.buf); // Caution this isn't how it should be used
+
+
+    slice_t oops_slice = make_slice(NULL, chunk_size * sizeof(float));
+    printf ("=========== NULL iterator ==========\n");
+    float *oops = BEGIN_ITR(oops_slice, float);
+    for (; END_ITR(oops, oops_slice, float); oops++){
+        printf ("NULL iterator #%.2f\n", *oops);
+    }
     return 0;
 }
 
@@ -58,6 +68,7 @@ main (int argc, char **argv)
 slice_t
 make_slice(void *array, size_t len_in_bytes)
 {
+    assert((NULL  != array) &&"object should not be NULL");
     return (slice_t){
         .buf = array,
         .len_in_bytes = len_in_bytes,
