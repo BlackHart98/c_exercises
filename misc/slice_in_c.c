@@ -17,7 +17,7 @@ char JUNK_MEMORY = 0;
 
 
 slice_t
-make_slice(void *array, size_t len_in_bytes);
+make_slice(void *object, size_t len_in_bytes);
 
 
 /*
@@ -66,11 +66,11 @@ main (int argc, char **argv)
 
 
 slice_t
-make_slice(void *array, size_t len_in_bytes)
+make_slice(void *object, size_t len_in_bytes)
 {
-    assert((NULL  != array) &&"object should not be NULL");
+    assert((NULL  != object) &&"object can not be NULL");
     return (slice_t){
-        .buf = array,
+        .buf = object,
         .len_in_bytes = len_in_bytes,
     };
 }
