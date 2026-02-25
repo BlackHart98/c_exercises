@@ -14,14 +14,20 @@ typedef struct slice_t {
 } slice_t;
 
 
+typedef struct const_slice_t {
+    const void *buf;
+    const size_t len_in_bytes;
+} const_slice_t;
+
+
 
 slice_t
 make_slice(void *object, size_t len_in_bytes);
 
 
-// Edge case: For string literal, it's length include '\0', you have to promise to never change content in buf of this slice
-slice_t
-make_const_slice(char *object);
+// Edge case: For string literal
+const_slice_t
+make_const_slice(const char *object);
 
 
 /*
@@ -60,7 +66,7 @@ main (int argc, char **argv)
 
 
     char *str_literal = "Hello";
-    const slice_t str_slice = make_const_slice(str_literal);
+    const_slice_t str_slice = make_const_slice(str_literal);
     printf ("=========== Const string iterator size (%lu) ==========\n", str_slice.len_in_bytes);
     for (char *itr = BEGIN_ITR(str_slice, char); END_ITR(itr, str_slice, char); itr++){
         printf ("iterator: %c\n", *itr);
@@ -79,7 +85,7 @@ main (int argc, char **argv)
 slice_t
 make_slice(void *object, size_t len_in_bytes)
 {
-    assert((NULL  != object) &&"object can not be NULL");
+    if (!object || len_in_bytes == 0) {return (slice_t){0};}
     return (slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
@@ -87,14 +93,15 @@ make_slice(void *object, size_t len_in_bytes)
 }
 
 
-slice_t
-make_const_slice(char *object)
+const_slice_t
+make_const_slice(const char *object)
 {
-    assert((NULL  != object) &&"object can not be NULL");
-    int i = 0;
+    size_t len_in_bytes = 0;
+    size_t i = 0;
+    if (!object) {return (const_slice_t){0};}
     while ('\0' != object[i]){i++;}
-    size_t len_in_bytes = i * sizeof(char);
-    return (slice_t){
+    len_in_bytes = i * sizeof(char) + 1;
+    return (const_slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
     };

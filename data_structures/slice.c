@@ -13,21 +13,22 @@ typedef struct slice_t {
     size_t len_in_bytes;
 } slice_t;
 
-char JUNK_MEMORY = 0;
+
+typedef struct const_slice_t {
+    const void *buf;
+    const size_t len_in_bytes;
+} const_slice_t;
+
 
 
 slice_t
 make_slice(void *object, size_t len_in_bytes);
 
 
-// Edge case: For string literal, it's length include '\0'
-slice_t
-make_const_slice(char *object);
-
 slice_t
 make_slice(void *object, size_t len_in_bytes)
 {
-    assert((NULL  != object) &&"object can not be NULL");
+    if (!object || len_in_bytes == 0) {return (slice_t){0};}
     return (slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
@@ -35,14 +36,15 @@ make_slice(void *object, size_t len_in_bytes)
 }
 
 
-slice_t
-make_const_slice(char *object)
+const_slice_t
+make_const_slice(const char *object)
 {
-    assert((NULL  != object) &&"object can not be NULL");
-    int i = 0;
+    size_t len_in_bytes = 0;
+    size_t i = 0;
+    if (!object) {return (const_slice_t){0};}
     while ('\0' != object[i]){i++;}
-    size_t len_in_bytes = i * sizeof(char);
-    return (slice_t){
+    len_in_bytes = i * sizeof(char) + 1;
+    return (const_slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
     };
