@@ -1,3 +1,9 @@
+#define WSA_IMPLEMENTATION
+
+
+#ifndef WHY_SO_ARENA_H
+#define WHY_SO_ARENA_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -9,7 +15,7 @@
 #include <assert.h>
 
 #define ARENA_LOCAL static
-#define ARENA_PUB   extern
+#define ARENA_PUB   
 
 // Slice utils
 #define GET_SLICE_LEN(slice, type_)                     slice.len_in_bytes/sizeof(type_)
@@ -43,67 +49,10 @@ typedef struct const_slice_t {
 } const_slice_t;
 
 
-const_slice_t
-make_const_slice(const char *object);
-
-slice_t
-make_slice(void *object, size_t len_in_bytes);
-
-
-slice_t interface_alloc(size_t len, size_t size_);
-void interface_free(void *ptr);
-// void interface_realloc(void *ptr); I will implement this is my free time
-
-
-slice_t
-make_slice(void *object, size_t len_in_bytes)
-{
-    if (NULL == object) {return (slice_t){0};}
-    return (slice_t){
-        .ptr = object,
-        .len_in_bytes = len_in_bytes,
-    };
-}
-
-
-const_slice_t
-make_const_slice(const char *object)
-{
-    size_t len_in_bytes = 0;
-    size_t i = 0;
-    if (NULL == object) {return (const_slice_t){0};}
-    while ('\0' != object[i]){i++;}
-    len_in_bytes = i * sizeof(char) + 1;
-    return (const_slice_t){
-        .buf = object,
-        .len_in_bytes = len_in_bytes,
-    };
-}
-
-
-
 typedef struct AllocatorVTable {
 	void (*free)(void *ptr);
 	slice_t (*alloc)(size_t len, size_t size_);
 } AllocatorVTable;
-
-
-// I just kept it minimal
-const AllocatorVTable c_allocator = (AllocatorVTable){.free = interface_free, .alloc = interface_alloc,};
-
-
-slice_t 
-interface_alloc(size_t len, size_t size_){
-    void *ptr = malloc(len * size_);
-    if (NULL == ptr) return (slice_t){};
-	return make_slice(ptr, len * size_);
-}
-
-
-void 
-interface_free(void *ptr){
-    free(ptr);
-}
 
 
 // linear allocator
@@ -113,7 +62,6 @@ typedef struct Arena {
     size_t prev_offset;
     size_t offset;
 } Arena;
-
 
 
 // Linked list with allocator
@@ -131,44 +79,74 @@ typedef struct ArenaAllocator {
 } ArenaAllocator;
 
 
+ARENA_LOCAL slice_t
+make_slice(void *object, size_t len_in_bytes);
+
+ARENA_LOCAL slice_t 
+interface_alloc(size_t len, size_t size_);
+
+ARENA_LOCAL void 
+interface_free(void *ptr);
+// void interface_realloc(void *ptr); I will implement this is my free time
+
+
+// I just kept it minimal
+
+ARENA_LOCAL const AllocatorVTable c_allocator = (AllocatorVTable){.free = interface_free, .alloc = interface_alloc,};
+
+
+ARENA_LOCAL slice_t 
+interface_alloc(size_t len, size_t size_){
+    void *ptr = malloc(len * size_);
+    if (NULL == ptr) return (slice_t){};
+	return make_slice(ptr, len * size_);
+}
+
+
+ARENA_LOCAL void 
+interface_free(void *ptr){
+    free(ptr);
+}
+
+
 // @todo: Implement resize/realloc
-Arena 
+ARENA_LOCAL Arena 
 arena_init(AllocatorVTable allocator, size_t capacity);
 
-uintptr_t 
+ARENA_LOCAL uintptr_t 
 align_forward(uintptr_t ptr, uintptr_t alignment_);
 
-slice_t 
+ARENA_LOCAL slice_t 
 arena_alloc_aligned(Arena *arena, size_t len, size_t size_, size_t alignment_);
 
-slice_t 
+ARENA_LOCAL slice_t 
 arena_resize_aligned(Arena *arena, slice_t old_slice, size_t len, size_t size_, size_t alignment_);
 
-void 
+ARENA_LOCAL void 
 arena_reset(Arena *arena);
 
-void 
+ARENA_LOCAL void 
 arena_deinit(AllocatorVTable allocator, Arena *arena);
 
-ArenaAllocator 
+ARENA_LOCAL ArenaAllocator 
 arena_allocator_init(AllocatorVTable allocator, size_t capacity, size_t page_size);
 
-slice_t 
+ARENA_LOCAL slice_t 
 arena_allocator_alloc_aligned(ArenaAllocator *arena_allocator, size_t len, size_t size_, size_t alignment_);
 
-void 
+ARENA_LOCAL void 
 arena_allocator_reset(ArenaAllocator *arena_allocator);
 
-void 
+ARENA_LOCAL void 
 arena_allocator_deinit(ArenaAllocator *arena_allocator);
 
 
-slice_t
+ARENA_LOCAL slice_t
 arena_allocator_resize_aligned(ArenaAllocator *arena_allocator, slice_t allocated_slice, size_t new_len, size_t new_size, size_t alignment_);
 
 
 
-
+#ifdef WSA_IMPLEMENTATION 
 ArenaAllocator 
 arena_allocator_init(AllocatorVTable allocator, size_t capacity, size_t page_size)
 {
@@ -348,6 +326,36 @@ arena_allocator_resize_aligned(ArenaAllocator *arena_allocator, slice_t allocate
     }
     return result;
 }
+
+
+
+slice_t
+make_slice(void *object, size_t len_in_bytes)
+{
+    if (NULL == object) {return (slice_t){0};}
+    return (slice_t){
+        .ptr = object,
+        .len_in_bytes = len_in_bytes,
+    };
+}
+
+
+const_slice_t
+make_const_slice(const char *object)
+{
+    size_t len_in_bytes = 0;
+    size_t i = 0;
+    if (NULL == object) {return (const_slice_t){0};}
+    while ('\0' != object[i]){i++;}
+    len_in_bytes = i * sizeof(char) + 1;
+    return (const_slice_t){
+        .buf = object,
+        .len_in_bytes = len_in_bytes,
+    };
+}
+#endif
+
+#endif
 
 
 int 
