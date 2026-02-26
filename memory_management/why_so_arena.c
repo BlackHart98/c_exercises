@@ -8,18 +8,25 @@
 
 #include <assert.h>
 
+#define ARENA_LOCAL static
+#define ARENA_PUB   extern
+
+// Slice utils
 #define GET_SLICE_LEN(slice, type_)                     slice.len_in_bytes/sizeof(type_)
 #define BEGIN_ITR(slice, type_)                         (type_ *)slice.ptr
 #define END_ITR(itr, slice, type_)                      itr < (type_ *)slice.ptr + GET_SLICE_LEN(slice, type_)
 #define BOUNDS(slice, type_)                            (type_ *)slice.ptr + GET_SLICE_LEN(slice, type_)
 
+// Allocator utils
 #define KB(byte)                                        (byte * 1024UL)
 #define DEFAULT_ALIGNMENT                               (2 * sizeof(void *))
 #define DEFAULT_PAGE_SIZE                               KB(2)
 // #define MAX_ALIGNMENT                                   _Alignof(max_align_t)
 
-#define arena_alloc(arena, T, len)                      arena_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
-#define arena_allocator_alloc(arena, T, len)           arena_allocator_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
+
+// These are the goodies
+#define arena_allocator_alloc(arena, T, len)            arena_allocator_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
+#define arena_allocator_resize(arena, T, old_slice, new_len)           arena_allocator_resize_aligned(arena, old_slice, new_len, sizeof(T), DEFAULT_ALIGNMENT)
 #define arena_allocator_init_page_default(allocator, capacity)    arena_allocator_init(allocator, capacity, DEFAULT_PAGE_SIZE)
 
 
@@ -59,7 +66,7 @@ typedef struct AllocatorVTable {
 
 
 
-AllocatorVTable c_allocator = (AllocatorVTable){.free = interface_free, .alloc = interface_alloc,};
+const AllocatorVTable c_allocator = (AllocatorVTable){.free = interface_free, .alloc = interface_alloc,};
 
 
 slice_t 
@@ -80,6 +87,7 @@ interface_free(void *ptr){
 typedef struct Arena {
     unsigned char* base_address;
     size_t capacity; // capacity in bytes
+    size_t prev_offset;
     size_t offset;
 } Arena;
 
@@ -110,6 +118,9 @@ align_forward(uintptr_t ptr, uintptr_t alignment_);
 slice_t 
 arena_alloc_aligned(Arena *arena, size_t len, size_t size_, size_t alignment_);
 
+slice_t 
+arena_resize_aligned(Arena *arena, slice_t old_slice, size_t len, size_t size_, size_t alignment_);
+
 void 
 arena_reset(Arena *arena);
 
@@ -127,6 +138,10 @@ arena_allocator_reset(ArenaAllocator *arena_allocator);
 
 void 
 arena_allocator_deinit(ArenaAllocator *arena_allocator);
+
+
+slice_t
+arena_allocator_resize_aligned(ArenaAllocator *arena_allocator, slice_t allocated_slice, size_t new_len, size_t new_size, size_t alignment_);
 
 
 
@@ -248,9 +263,19 @@ arena_alloc_aligned(Arena *arena, size_t len, size_t size_, size_t alignment_)
     if ((offset + (len*size_)) <= arena->capacity){
         void *allocated = &arena->base_address[offset];
         arena->offset = offset + (len * size_);
+        arena->prev_offset = offset;
         return make_slice(allocated, len * size_);
     }
     return make_slice(NULL, 0);
+}
+
+
+slice_t 
+arena_resize_aligned(Arena *arena, slice_t old_slice, size_t new_len, size_t size_, size_t alignment_)
+{   
+    slice_t new_slice = arena_alloc_aligned(arena, new_len, size_, alignment_);
+    memmove(new_slice.ptr, old_slice.ptr, new_len * size_);
+    return new_slice;
 }
 
 
@@ -258,6 +283,7 @@ void
 arena_reset(Arena *arena)
 {
     arena->offset = 0;
+    arena->prev_offset = 0;
 }
 
 
@@ -268,17 +294,46 @@ arena_deinit(AllocatorVTable allocator, Arena *arena)
     arena->base_address = 0;
     arena->capacity = 0;
     arena->offset = 0;
+    arena->prev_offset = 0;
 }
 
+
+slice_t
+arena_allocator_resize_aligned(ArenaAllocator *arena_allocator, slice_t allocated_slice, size_t new_len, size_t size_, size_t alignment_)
+{
+    assert((0 < new_len)&&"New length should always be greater than zero");
+    assert((0 < size_)&&"New size should always be greater than zero");
+    assert((NULL != allocated_slice.ptr)&&"Slice should not be NULL, try to allocatoe it");
+    assert((NULL != arena_allocator->linkedlist)&&"Arena allocator was not initialized");
+    slice_t result = (slice_t){};
+    if ((new_len * size_) < allocated_slice.len_in_bytes) result = (slice_t){.len_in_bytes = new_len * size_, .ptr = allocated_slice.ptr};
+    else {
+        // Search for slice's arena
+        ArenaLinkedNode *current_node = arena_allocator->linkedlist;
+        uintptr_t arena_lower_bound = 0; uintptr_t arena_upper_bound = 0;
+
+        while (NULL != current_node){
+            arena_lower_bound = (uintptr_t)current_node->arena.base_address;
+            arena_upper_bound = arena_lower_bound + current_node->arena.capacity;
+            if (arena_lower_bound <= (uintptr_t) allocated_slice.ptr 
+                || arena_upper_bound > (uintptr_t) allocated_slice.ptr){
+                break;
+            }
+        }
+        assert((NULL != current_node)&&"Slice does not point to any arena, ensure you are using the arena the was use to create the slice");
+        result = arena_resize_aligned(&(current_node->arena), allocated_slice, new_len, size_, alignment_);
+    }
+    return result;
+}
 
 
 int 
 main(int argc, char* argv[])
 {
-    ArenaAllocator my_arena = arena_allocator_init_page_default(c_allocator, KB(1));
+    ArenaAllocator my_arena_allocator = arena_allocator_init_page_default(c_allocator, KB(1));
 
     printf("This is my allocator I'd slap it everywhere possible\n");
-    slice_t my_float_1 = arena_allocator_alloc(&my_arena, float, 1000); // my_float_1: []float
+    slice_t my_float_1 = arena_allocator_alloc(&my_arena_allocator, float, 200); // my_float_1: []float
     if (NULL != my_float_1.ptr){
         printf("first init length %lu\n", GET_SLICE_LEN(my_float_1, float));
         float *ptr = (float *)(my_float_1.ptr);
@@ -288,8 +343,14 @@ main(int argc, char* argv[])
         for (float *ptr = BEGIN_ITR(my_float_1, float); END_ITR(ptr, my_float_1, float); ptr++){
             printf("get float <%.2f>\n", *ptr);
         }
+        my_float_1 = arena_allocator_resize(&my_arena_allocator, float, my_float_1, 2);
+        printf("===========================\n");
+        for (float *ptr = BEGIN_ITR(my_float_1, float); END_ITR(ptr, my_float_1, float); ptr++){
+            printf("get float <%.2f>\n", *ptr);
+        }
+        printf("new float slice length is: #%lu\n", GET_SLICE_LEN(my_float_1, float));
     }
-    arena_allocator_deinit(&my_arena);
+    arena_allocator_deinit(&my_arena_allocator);
     return 0;
 }
 
