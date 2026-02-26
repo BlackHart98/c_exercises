@@ -65,7 +65,7 @@ typedef struct AllocatorVTable {
 } AllocatorVTable;
 
 
-
+// I just kept it minimal
 const AllocatorVTable c_allocator = (AllocatorVTable){.free = interface_free, .alloc = interface_alloc,};
 
 
