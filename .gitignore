@@ -7,3 +7,4 @@ inspect_asm.sh
 spoiler.txt
 mylib.s
 assembly/
+profile.json.gz
