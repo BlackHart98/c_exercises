@@ -265,11 +265,13 @@ arena_alloc_aligned(arena_t *arena, size_t len, size_t size_, size_t alignment_)
     uintptr_t curr_offset = (uintptr_t)arena->base_address + (uintptr_t)arena->offset;
     uintptr_t offset = align_forward(curr_offset, alignment_) - (uintptr_t) arena->base_address;
     // the we check if the arena can contain new item(s)
-    if ((offset + (len*size_)) <= arena->capacity){
+    uintptr_t new_entry_count = (uintptr_t)(len * size_);
+    uintptr_t new_offset = offset + new_entry_count;
+    if (new_offset <= arena->capacity){
         void *allocated = &arena->base_address[offset];
-        arena->offset = offset + (len * size_);
+        arena->offset = new_offset;
         arena->prev_offset = offset;
-        return make_slice(allocated, len * size_);
+        return make_slice(allocated, new_entry_count);
     }
     return make_slice(NULL, 0);
 }
