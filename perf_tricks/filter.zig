@@ -1,12 +1,13 @@
 const std = @import("std");
 
-const STRIDE = 4;
+const STRIDE = 8;
 
 
-// Stride capped at 4 element stride, I have to figure out how to fix this to make it possible to have decent sized stride
-fn buildLookupTable(comptime stride: u8) [1 << stride][stride]u8 {
-    std.debug.assert(4 >= stride);
+fn buildLookupTable(comptime stride: usize) [1 << stride][stride]u8 {
     var lookupTable: [1 << stride][stride]u8 = undefined;
+    const l: usize = (1 << stride) * stride;
+    const max_loop_bounds: usize = if (1000 <= l) l + 1000 else 1000;
+    @setEvalBranchQuota(max_loop_bounds);
     for (0..(1 << stride)) |mask| {
         var pos: u8 = 0;
         inline for (0..stride) |idx| {
@@ -19,16 +20,15 @@ fn buildLookupTable(comptime stride: u8) [1 << stride][stride]u8 {
     return lookupTable;
 }
 
-fn filter(gpa: std.mem.Allocator, comptime stride: usize, item: u8, array_slice: []u8) !std.ArrayList(usize) {
-    const lookupTable = comptime buildLookupTable(stride);
+fn filter(gpa: std.mem.Allocator, comptime stride: usize, item: u8, array_slice: []const u8) !std.ArrayList(usize) {
+    const lookupTable: [1 << stride][stride]u8 = comptime buildLookupTable(stride);
     const item_vec: @Vector(stride, u8) = @splat(item);
     var count: usize = 0;
     var result: std.ArrayList(usize) = std.mem.zeroInit(std.ArrayList(usize), .{});
     errdefer result.deinit(gpa);
     while (array_slice.len >= count + stride) : (count += stride) {
         const temp: @Vector(stride, bool) = array_slice[count..][0..stride].* == item_vec;
-        var mask: usize = 0;
-        inline for (0..stride) |idx| mask |= @as(usize, @intFromBool(temp[idx])) << idx;
+        const mask: usize = @as(std.meta.Int(.unsigned, stride), @bitCast(temp));
         const matches: [stride]u8 = lookupTable[mask];
         const n: usize = @popCount(mask);
         for (0..n) |idx| try result.append(gpa, count + matches[idx]);
