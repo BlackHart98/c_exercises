@@ -3,7 +3,7 @@ const std = @import("std");
 const STRIDE = 4;
 
 
-// Stride capped at 4 element stride, I have to figure out how to fix this to make it possible to 
+// Stride capped at 4 element stride, I have to figure out how to fix this to make it possible to have decent sized stride
 fn buildLookupTable(comptime stride: u8) [1 << stride][stride]u8 {
     std.debug.assert(4 >= stride);
     var lookupTable: [1 << stride][stride]u8 = undefined;
