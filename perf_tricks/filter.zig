@@ -4,6 +4,7 @@ const STRIDE = 8;
 
 
 fn buildLookupTable(comptime stride: usize) [1 << stride][stride]u8 {
+    std.debug.assert(8 >= stride);
     var lookupTable: [1 << stride][stride]u8 = undefined;
     const l: usize = (1 << stride) * stride;
     const max_loop_bounds: usize = if (1000 <= l) l + 1000 else 1000;
@@ -44,8 +45,14 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var test_list = [_]u8{7, 8, 5, 9, 2, 1, 2, 0};
-    var result: std.ArrayList(usize) = try filter(allocator, STRIDE, 2, &test_list);
+    var test_list = [_]u8{ 
+        7, 8, 5, 9, 2, 1, 2, 0, 3,
+        6, 4, 5, 1, 7, 2, 9, 0, 5, 
+        8, 3, 6, 1, 4, 7, 2, 5, 9,
+        0, 3, 8, 1, 6, 4, 2, 7, 5, 
+        9, 3, 0, 8, 1, 6, 4, 2, 7, 
+        5, 9, 3, 0, 8 };
+    var result: std.ArrayList(usize) = try filter(allocator, STRIDE, 0, &test_list);
     defer result.deinit(allocator);
     std.debug.print("Here is the output: {any}\n", .{result.items});
 }
