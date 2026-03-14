@@ -10,7 +10,7 @@ fn buildLookupTable(comptime stride: u8) [1 << stride][stride]u8 {
     for (0..(1 << stride)) |mask| {
         var pos: u8 = 0;
         inline for (0..stride) |idx| {
-            if (0 != (mask & (1 << idx))){
+            if (0 != (mask & (1 << idx))) {
                 lookupTable[mask][pos] = idx;
                 pos += 1;
             }
@@ -44,7 +44,7 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var test_list = [8]u8{7, 8, 5, 9, 2, 1, 2, 0};
+    var test_list = [_]u8{7, 8, 5, 9, 2, 1, 2, 0};
     var result: std.ArrayList(usize) = try filter(allocator, STRIDE, 2, &test_list);
     defer result.deinit(allocator);
     std.debug.print("Here is the output: {any}\n", .{result.items});
