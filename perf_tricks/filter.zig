@@ -25,7 +25,7 @@ fn filter(gpa: std.mem.Allocator, comptime stride: usize, item: u8, array_slice:
     const lookupTable: [1 << stride][stride]u8 = comptime buildLookupTable(stride);
     const item_vec: @Vector(stride, u8) = @splat(item);
     var count: usize = 0;
-    var result: std.ArrayList(usize) = std.mem.zeroInit(std.ArrayList(usize), .{});
+    var result: std.ArrayList(usize) = .empty;
     errdefer result.deinit(gpa);
     while (array_slice.len >= count + stride) : (count += stride) {
         const temp: @Vector(stride, bool) = array_slice[count..][0..stride].* == item_vec;
