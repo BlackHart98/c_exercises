@@ -4,7 +4,7 @@ fn branchlessToUpper(comptime stride: usize, word: []u8) []u8 {
     const deduct: @Vector(stride, u8) = @splat(32);
     var count: usize = 0;
     var multiplier: @Vector(stride, u8) = @splat(0);
-    while ((count + stride) < word.len) : (count += stride) {
+    while ((count + stride) <= word.len) : (count += stride) {
         computeMultiplierUpper(stride, &multiplier, word, count);
         word[count..][0..stride].* = word[count..][0..stride].* - @as(@Vector(stride, u8), @intCast(multiplier * deduct));
     }
