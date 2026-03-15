@@ -2,6 +2,10 @@ const std = @import("std");
 
 const STRIDE = 8;
 
+pub const FilterResult = struct {
+    out_slice: []usize, size: usize
+};
+
 
 fn buildLookupTable(comptime stride: usize) [1 << stride][stride]u8 {
     std.debug.assert(8 >= stride);
@@ -21,18 +25,25 @@ fn buildLookupTable(comptime stride: usize) [1 << stride][stride]u8 {
     return lookup_table;
 }
 
-fn filter(gpa: std.mem.Allocator, comptime stride: usize, item: u8, array_slice: []const u8) !std.ArrayList(usize) { 
+fn filter(
+    comptime stride: usize, 
+    item: u8, 
+    array_slice: []const u8,
+    buf: *[]usize,
+) []usize { 
     const lookup_table: [1 << stride][stride]u8 = comptime buildLookupTable(stride);
     const item_vec: @Vector(stride, u8) = @splat(item);
     var count: usize = 0;
-    var result: std.ArrayList(usize) = .empty;
-    errdefer result.deinit(gpa);
+    var out_len: usize = 0;
+    var out_array: []usize = buf.*;
     while (array_slice.len >= count + stride) : (count += stride) {
         const temp: @Vector(stride, bool) = array_slice[count..][0..stride].* == item_vec;
         const mask: usize = @as(std.meta.Int(.unsigned, stride), @bitCast(temp));
         const matches: [stride]u8 = lookup_table[mask];
         const n: usize = @popCount(mask);
-        for (0..n) |idx| try result.append(gpa, count + matches[idx]);
+        for (0..n) |idx| {
+            out_array[out_len] = count + matches[idx]; out_len += 1;
+        }
     }
     const max: usize = @max(stride - 1, 2);
     switch (array_slice.len - count) {
@@ -43,12 +54,14 @@ fn filter(gpa: std.mem.Allocator, comptime stride: usize, item: u8, array_slice:
             const mask: usize = @as(std.meta.Int(.unsigned, leftover_stride), @bitCast(temp));
             const matches: [leftover_stride]u8 = lookup_table_[mask];
             const n: usize = @popCount(mask);
-            for (0..n) |idx| try result.append(gpa, count + matches[idx]);
+            for (0..n) |idx| {
+                out_array[out_len] = count + matches[idx]; out_len += 1;
+            }
         },
-        1 => if (array_slice[count] == item) try result.append(gpa, count),
+        1 => if (array_slice[count] == item) {out_array[out_len] = count; out_len += 1;},
         else => {},
     }
-    return result;
+    return out_array[0..out_len];
 }
 
 pub fn main() !void {
@@ -63,7 +76,9 @@ pub fn main() !void {
         0, 3, 8, 1, 6, 4, 2, 7, 5, 
         9, 3, 0, 8, 1, 6, 4, 2, 7, 
         5, 9, 3, 0, 8 };
-    var result: std.ArrayList(usize) = try filter(allocator, STRIDE, 8, &test_list);
-    defer result.deinit(allocator);
-    std.debug.print("Here is the output: {any}\n", .{result.items});
+    const test_len = test_list.len;
+    var buffer: []usize = try allocator.alloc(usize, test_len);
+    defer allocator.free(buffer);
+    const result: []usize = filter(STRIDE, 1, &test_list, &buffer);
+    std.debug.print("Here is the output: {any}\n", .{result});
 }
