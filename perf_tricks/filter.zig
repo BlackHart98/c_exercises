@@ -29,13 +29,13 @@ fn filter(
     comptime stride: usize, 
     item: u8, 
     array_slice: []const u8,
-    buf: *[]usize,
+    buf: []usize,
 ) []usize { 
     const lookup_table: [1 << stride][stride]u8 = comptime buildLookupTable(stride);
     const item_vec: @Vector(stride, u8) = @splat(item);
     var count: usize = 0;
     var out_len: usize = 0;
-    var out_array: []usize = buf.*;
+    var out_array: []usize = buf;
     while (array_slice.len >= count + stride) : (count += stride) {
         const temp: @Vector(stride, bool) = array_slice[count..][0..stride].* == item_vec;
         const mask: usize = @as(std.meta.Int(.unsigned, stride), @bitCast(temp));
@@ -77,8 +77,8 @@ pub fn main() !void {
         9, 3, 0, 8, 1, 6, 4, 2, 7, 
         5, 9, 3, 0, 8 };
     const test_len = test_list.len;
-    var buffer: []usize = try allocator.alloc(usize, test_len);
+    const buffer: []usize = try allocator.alloc(usize, test_len);
     defer allocator.free(buffer);
-    const result: []usize = filter(STRIDE, 1, &test_list, &buffer);
+    const result: []usize = filter(STRIDE, 1, &test_list, buffer);
     std.debug.print("Here is the output: {any}\n", .{result});
 }
