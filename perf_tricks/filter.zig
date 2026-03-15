@@ -38,6 +38,7 @@ fn filter(gpa: std.mem.Allocator, comptime stride: usize, item: u8, array_slice:
     switch (array_slice.len - count) {
         inline 2...max => |leftover_stride| {
             const lookup_table_: [1 << leftover_stride][leftover_stride]u8 = comptime buildLookupTable(leftover_stride);
+            
             const item_vec_: @Vector(leftover_stride, u8) = @splat(item);
             const temp: @Vector(leftover_stride, bool) = array_slice[count..][0..leftover_stride].* == item_vec_;
             const mask: usize = @as(std.meta.Int(.unsigned, leftover_stride), @bitCast(temp));
