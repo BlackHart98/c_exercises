@@ -10,3 +10,4 @@ assembly/
 profile.json.gz
 recording.trace
 filter
+**/zig-out/
