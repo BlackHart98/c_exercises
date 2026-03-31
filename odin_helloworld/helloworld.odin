@@ -11,20 +11,36 @@ branchless_to_upper :: proc(str: []u8) {
     for count + stride < len(str) {
         deduct: [stride]u8 = [stride]u8{32, 32, 32, 32};
         multiplier: [stride]u8 = [stride]u8{0, 0, 0, 0};
-
-        multiplier[0] = cast(u8)(('a' <= str[count]) && ('z' >= str[count]))
-        multiplier[1] = cast(u8)(('a' <= str[count + 1]) && ('z' >= str[count + 1]))
-        multiplier[2] = cast(u8)(('a' <= str[count + 2]) && ('z' >= str[count + 2]))
-        multiplier[3] = cast(u8)(('a' <= str[count + 3]) && ('z' >= str[count + 3]))
-
-        str[count] -= multiplier[0] * deduct[0]
-        str[count + 1] -= multiplier[1] * deduct[1]
-        str[count + 2] -= multiplier[2] * deduct[2]
-        str[count + 3] -= multiplier[3] * deduct[3]
+        #unroll for idx in 0..<stride {
+            multiplier[idx] = cast(u8)(('a' <= str[count + idx]) && ('z' >= str[count + idx]))
+        }
+        #unroll for idx in 0..<stride {
+            str[count + idx] -= multiplier[idx] * deduct[idx]
+        }
         count += stride
     }
     for idx in count..<len(str) {
         str[idx] -= 32 * cast(u8)(('a' <= str[idx]) && ('z' >= str[idx]));
+    }
+} 
+
+
+branchless_to_lower :: proc(str: []u8) {
+    count: int = 0;
+    stride:int:4; // stride
+    for count + stride < len(str) {
+        deduct: [stride]u8 = [stride]u8{32, 32, 32, 32};
+        multiplier: [stride]u8 = [stride]u8{0, 0, 0, 0};
+        #unroll for idx in 0..<stride {
+            multiplier[idx] = cast(u8)(('A' <= str[count + idx]) && ('Z' >= str[count + idx]))
+        }
+        #unroll for idx in 0..<stride {
+            str[count + idx] += multiplier[idx] * deduct[idx]
+        }
+        count += stride
+    }
+    for idx in count..<len(str) {
+        str[idx] += 32 * cast(u8)(('A' <= str[idx]) && ('Z' >= str[idx]));
     }
 }
 
