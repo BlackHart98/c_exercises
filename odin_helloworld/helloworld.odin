@@ -7,8 +7,7 @@ import "core:strings"
 
 branchless_to_upper :: proc(str: []u8) {
     count: int = 0;
-    stride: int : 4; // stride
-    fmt.println("Here is the output: ", len(str))
+    stride:int:4; // stride
     for count + stride < len(str) {
         deduct: [stride]u8 = [stride]u8{32, 32, 32, 32};
         multiplier: [stride]u8 = [stride]u8{0, 0, 0, 0};
@@ -25,12 +24,12 @@ branchless_to_upper :: proc(str: []u8) {
         count += stride
     }
     for idx in count..<len(str) {
-        str[count] = cast(u8)(('a' <= str[count]) && ('z' >= str[count]))
+        str[idx] -= 32 * cast(u8)(('a' <= str[idx]) && ('z' >= str[idx]));
     }
 }
 
 main :: proc() {
-    test_string:: 
+    test_string:string: 
 `In a quiet town where the evenings arrive slowly and the wind moves gently
 through the trees, a curious programmer sits at a desk illuminated by the
 pale glow of a monitor, thinking about compilers, memory layouts, and the
