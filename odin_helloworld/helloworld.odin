@@ -5,12 +5,11 @@ import "core:fmt"
 import "core:strings"
 
 
-branchless_to_upper :: proc(str: []u8) {
+branchless_to_upper :: proc($stride: int, str: []u8) {
     count: int = 0;
-    stride:int:4; // stride
     for count + stride < len(str) {
-        deduct: [stride]u8 = [stride]u8{32, 32, 32, 32};
-        multiplier: [stride]u8 = [stride]u8{0, 0, 0, 0};
+        deduct: [stride]u8 = [?]u8{0..<stride = 32};
+        multiplier: [stride]u8 = [?]u8{0..<stride = 0};
         #unroll for idx in 0..<stride {
             multiplier[idx] = cast(u8)(('a' <= str[count + idx]) && ('z' >= str[count + idx]))
         }
@@ -25,12 +24,11 @@ branchless_to_upper :: proc(str: []u8) {
 } 
 
 
-branchless_to_lower :: proc(str: []u8) {
+branchless_to_lower :: proc($stride: int, str: []u8) {
     count: int = 0;
-    stride:int:4; // stride
     for count + stride < len(str) {
-        deduct: [stride]u8 = [stride]u8{32, 32, 32, 32};
-        multiplier: [stride]u8 = [stride]u8{0, 0, 0, 0};
+        deduct: [stride]u8 = [?]u8{0..<stride = 32};
+        multiplier: [stride]u8 = [?]u8{0..<stride = 0};
         #unroll for idx in 0..<stride {
             multiplier[idx] = cast(u8)(('A' <= str[count + idx]) && ('Z' >= str[count + idx]))
         }
@@ -64,6 +62,6 @@ through reflections on persistence, quiet curiosity, and the peculiar joy
 that appears when a difficult system finally behaves exactly as intended.`;
     result: string = strings.clone(test_string)
     defer delete(result)
-    branchless_to_upper(transmute([]u8) result)
+    branchless_to_upper(4, transmute([]u8) result)
     fmt.println("Here is the output:\n", result);
 }
