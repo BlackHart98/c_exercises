@@ -11,12 +11,12 @@ branchless_to_upper :: proc($stride: int, str: []u8) {
         deduct: [stride]u8 = [?]u8{0..<stride = 32};
         multiplier: [stride]u8 = [?]u8{0..<stride = 0};
         #unroll for idx in 0..<stride {
-            multiplier[idx] = cast(u8)(('a' <= str[count + idx]) && ('z' >= str[count + idx]))
+            multiplier[idx] = cast(u8)(('a' <= str[count + idx]) && ('z' >= str[count + idx]));
         }
         #unroll for idx in 0..<stride {
-            str[count + idx] -= multiplier[idx] * deduct[idx]
+            str[count + idx] -= multiplier[idx] * deduct[idx];
         }
-        count += stride
+        count += stride;
     }
     for idx in count..<len(str) {
         str[idx] -= 32 * cast(u8)(('a' <= str[idx]) && ('z' >= str[idx]));
@@ -30,12 +30,12 @@ branchless_to_lower :: proc($stride: int, str: []u8) {
         deduct: [stride]u8 = [?]u8{0..<stride = 32};
         multiplier: [stride]u8 = [?]u8{0..<stride = 0};
         #unroll for idx in 0..<stride {
-            multiplier[idx] = cast(u8)(('A' <= str[count + idx]) && ('Z' >= str[count + idx]))
+            multiplier[idx] = cast(u8)(('A' <= str[count + idx]) && ('Z' >= str[count + idx]));
         }
         #unroll for idx in 0..<stride {
-            str[count + idx] += multiplier[idx] * deduct[idx]
+            str[count + idx] += multiplier[idx] * deduct[idx];
         }
-        count += stride
+        count += stride;
     }
     for idx in count..<len(str) {
         str[idx] += 32 * cast(u8)(('A' <= str[idx]) && ('Z' >= str[idx]));
@@ -60,8 +60,8 @@ until it becomes an unusually extended thought that stretches far beyond
 what anyone would normally consider a reasonable sentence, continuing
 through reflections on persistence, quiet curiosity, and the peculiar joy
 that appears when a difficult system finally behaves exactly as intended.`;
-    result: string = strings.clone(test_string)
-    defer delete(result)
-    branchless_to_upper(4, transmute([]u8) result)
+    result: string = strings.clone(test_string);
+    defer delete(result);
+    branchless_to_upper(4, transmute([]u8)result);
     fmt.println("Here is the output:\n", result);
 }
