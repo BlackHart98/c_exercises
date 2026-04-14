@@ -5,7 +5,7 @@ import "core:fmt"
 import "core:strings"
 
 
-branchless_to_upper :: proc($stride: int, str: []u8) {
+branchless_to_upper :: proc($stride: int, str: []u8) where stride > 0 {
     count: int = 0;
     for count + stride < len(str) {
         deduct: [stride]u8 = [?]u8{0..<stride = 32};
@@ -24,7 +24,7 @@ branchless_to_upper :: proc($stride: int, str: []u8) {
 } 
 
 
-branchless_to_lower :: proc($stride: int, str: []u8) {
+branchless_to_lower :: proc($stride: int, str: []u8) where stride > 0 {
     count: int = 0;
     for count + stride < len(str) {
         deduct: [stride]u8 = [?]u8{0..<stride = 32};
