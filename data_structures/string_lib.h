@@ -4,7 +4,7 @@
 #include <assert.h>
 
 
-#include "why_so_arena.h"
+#include "../memory_management/why_so_arena.c"
 
 #define STRING_LIB_LOCAL static
 
