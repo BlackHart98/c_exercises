@@ -73,6 +73,15 @@ position_soa_append_slice_fn(arena_allocator_t *allocator, position_soa_t *dst, 
     return 0;
 }
 
+float 
+sum_x_pos(position_soa_t *pos_list)
+{
+    float result = 0;
+    for (int i = 0; i < pos_list->len; i++){
+        result += pos_list->x_pos[i];
+    }
+    return result;
+}
 
 int 
 main(int argc, char *argv[])
@@ -89,14 +98,14 @@ main(int argc, char *argv[])
         int ret = position_soa_append_slice_fn(&gpa, &pos_list, position_slice);
         // x positions
         for (int i = 0; i < pos_list.len; i++){
-            printf("pos_list: x_pos[%d]: %f\n", i, pos_list.x_pos[i]);
+            printf("pos_list: x_pos[%d]: %.2f\n", i, pos_list.x_pos[i]);
         }
         // y positions
         for (int i = 0; i < pos_list.len; i++){
-            printf("pos_list: y_pos[%d]: %f\n", i, pos_list.y_pos[i]);
+            printf("pos_list: y_pos[%d]: %.2f\n", i, pos_list.y_pos[i]);
         }
     }
-    printf("capacity: %lu\n", pos_list.capacity);
+    printf("capacity: %lu, sum of the x positions: %.2f\n", pos_list.capacity, sum_x_pos(&pos_list));
     arena_allocator_deinit(&gpa);
     return 0;
 }
