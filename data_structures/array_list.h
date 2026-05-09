@@ -56,7 +56,7 @@ array_list_append_item_fn(arena_allocator_t *allocator, array_list_t *dst, char 
         new_slice = arena_allocator_resize_aligned(allocator, new_slice, expected_len << 1, dst->size, DEFAULT_ALIGNMENT);
         dst->capacity = (1 + dst->len) << 1;
     }
-    memmove(&(new_slice.ptr[dst->len]), item, dst->size);
+    memmove(&(new_slice.ptr[dst->len * dst->size]), item, dst->size);
     dst->len += 1;
     dst->ptr = new_slice.ptr;
     return 0;
