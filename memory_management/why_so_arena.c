@@ -82,7 +82,6 @@ typedef struct arena_allocator_t {
 ARENA_LOCAL slice_t
 make_slice(void *object, size_t len_in_bytes);
 
-
 ARENA_LOCAL const_slice_t
 make_const_slice(const char *object);
 
@@ -180,14 +179,14 @@ arena_allocator_alloc_aligned(arena_allocator_t *arena_allocator, size_t len, si
     arena_linked_node_t *current_node = arena_allocator->tail_linkedlist;
     slice_t result = arena_alloc_aligned(&(current_node->arena), len, size_, alignment_);
     if (!result.ptr){
-        printf("Creating new sizeable arena\n");
+        // printf("Creating new sizeable arena\n");
         slice_t slice = arena_allocator->allocator.alloc(1, sizeof(*current_node->next));
         if (0 == slice.len_in_bytes) return (slice_t){};
         arena_linked_node_t *new_node = slice.ptr;
         if (NULL == new_node) return (slice_t){};
 
         size_t page_allocation = arena_allocator->page_size;
-        if (page_allocation < size_ * len) page_allocation += (size_ * len);
+        while (page_allocation < size_ * len) page_allocation += arena_allocator->page_size;
         arena_t new_arena = arena_init(arena_allocator->allocator, page_allocation);
         if (NULL == new_arena.base_address) return (slice_t){};
 
@@ -200,7 +199,6 @@ arena_allocator_alloc_aligned(arena_allocator_t *arena_allocator, size_t len, si
         return arena_alloc_aligned(&(new_node->arena), len, size_, alignment_);
     }
     return result;
-    
 }
 
 
@@ -265,15 +263,14 @@ arena_alloc_aligned(arena_t *arena, size_t len, size_t size_, size_t alignment_)
     uintptr_t curr_offset = (uintptr_t)arena->base_address + (uintptr_t)arena->offset;
     uintptr_t offset = align_forward(curr_offset, alignment_) - (uintptr_t) arena->base_address;
     // the we check if the arena can contain new item(s)
-    uintptr_t new_entry_count = (uintptr_t)(len * size_);
-    uintptr_t new_offset = offset + new_entry_count;
-    if (new_offset <= arena->capacity){
+    if ((offset + (len*size_)) <= arena->capacity){
         void *allocated = &arena->base_address[offset];
-        arena->offset = new_offset;
+        arena->offset = offset + (len * size_);
         arena->prev_offset = offset;
-        return make_slice(allocated, new_entry_count);
+        return make_slice(allocated, len * size_);
+    } else {
+        return make_slice(NULL, 0);
     }
-    return make_slice(NULL, 0);
 }
 
 
@@ -281,7 +278,7 @@ slice_t
 arena_resize_aligned(arena_t *arena, slice_t old_slice, size_t new_len, size_t size_, size_t alignment_)
 {   
     slice_t new_slice = arena_alloc_aligned(arena, new_len, size_, alignment_);
-    memmove(new_slice.ptr, old_slice.ptr, new_len * size_);
+    memmove(new_slice.ptr, old_slice.ptr, old_slice.len_in_bytes);
     return new_slice;
 }
 
@@ -328,7 +325,10 @@ arena_allocator_resize_aligned(arena_allocator_t *arena_allocator, slice_t alloc
             }
         }
         assert((NULL != current_node)&&"Slice does not point to any arena, ensure you are using the arena the was use to create the slice");
-        result = arena_resize_aligned(&(current_node->arena), allocated_slice, new_len, size_, alignment_);
+        slice_t new_slice = arena_allocator_alloc_aligned(arena_allocator, new_len, size_, alignment_);
+        assert((0 != new_slice.len_in_bytes)&&"Empty slice");
+        memmove(new_slice.ptr, allocated_slice.ptr, allocated_slice.len_in_bytes);
+        result = new_slice;
     }
     return result;
 }
@@ -353,7 +353,7 @@ make_const_slice(const char *object)
     size_t i = 0;
     if (NULL == object) {return (const_slice_t){0};}
     while ('\0' != object[i]){i++;}
-    len_in_bytes = i * sizeof(char) + 1;
+    len_in_bytes = i * sizeof(char);
     return (const_slice_t){
         .buf = object,
         .len_in_bytes = len_in_bytes,
