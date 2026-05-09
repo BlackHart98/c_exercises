@@ -73,6 +73,17 @@ position_soa_append_slice_fn(arena_allocator_t *allocator, position_soa_t *dst, 
     return 0;
 }
 
+position_t
+position_soa_get_position(position_soa_t *dst, size_t index)
+{
+    return (position_t) {
+        .x_pos = dst->x_pos[index],
+        .y_pos = dst->y_pos[index],
+        .z_pos = dst->z_pos[index],
+    };
+}
+
+
 float 
 sum_x_pos(position_soa_t *pos_list)
 {
