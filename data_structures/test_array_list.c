@@ -11,7 +11,6 @@ main(int argc, char* argv[])
     arena_allocator_t gpa = arena_allocator_init_page_default(c_allocator, KB(1));
     array_list_t float_list = array_list_init_capacity(&gpa, float, 200); // float_list: [dynamic]float
     if (NULL != float_list.ptr){
-        printf("first init length\n");
         float input_array[] = {8, 9, 10, 4.5, 0.7};
 
         slice_t buf_slice = make_slice((void *)input_array, sizeof(input_array)); 
