@@ -22,10 +22,10 @@ ARRAY_LIST_LOCAL array_list_t
 array_list_init_capacity_fn(arena_allocator_t *allocator, size_t init_capacity, size_t size);
 
 ARRAY_LIST_LOCAL int 
-array_list_append_item_fn(arena_allocator_t *allocator, array_list_t *dst, char *item);
+array_list_append_item_fn(arena_allocator_t *allocator, array_list_t *dst, const char *item);
 
 ARRAY_LIST_LOCAL int 
-array_list_append_slice_fn(arena_allocator_t *allocator, array_list_t *dst, slice_t buf);
+array_list_append_slice_fn(arena_allocator_t *allocator, array_list_t *dst, const slice_t buf);
 
 
 #ifdef ARRAY_LIST_IMPLEMENTATION
@@ -47,12 +47,12 @@ array_list_init_capacity_fn(arena_allocator_t *allocator, size_t init_capacity, 
 
 // side-effect: Table doubling
 int 
-array_list_append_item_fn(arena_allocator_t *allocator, array_list_t *dst, char *item)
+array_list_append_item_fn(arena_allocator_t *allocator, array_list_t *dst, const char *item)
 {
     size_t expected_len = dst->size * (1 + dst->len);
     slice_t new_slice = (slice_t){.len_in_bytes = dst->size * dst->capacity, .ptr = dst->ptr};
     if (0 == new_slice.len_in_bytes) return 1;
-    if (dst->capacity < expected_len){
+    if (dst->capacity * dst->size < expected_len){
         new_slice = arena_allocator_resize_aligned(allocator, new_slice, expected_len << 1, dst->size, DEFAULT_ALIGNMENT);
         dst->capacity = (1 + dst->len) << 1;
     }
@@ -65,73 +65,23 @@ array_list_append_item_fn(arena_allocator_t *allocator, array_list_t *dst, char 
 
 
 int 
-array_list_append_slice_fn(arena_allocator_t *allocator, array_list_t *dst, slice_t buf)
+array_list_append_slice_fn(arena_allocator_t *allocator, array_list_t *dst, const slice_t buf)
 {
-    assert((buf.len_in_bytes <= (dst->size * dst->len))&&"incompatible types");
-    // size_t expected_len = dst->size * (1 + dst->len);
-    // slice_t new_slice = (slice_t){.len_in_bytes = dst->size * dst->capacity, .ptr = dst->ptr};
-    // if (0 == new_slice.len_in_bytes) return 1;
-    // if (dst->capacity < expected_len){
-    //     new_slice = arena_allocator_resize_aligned(arena, new_slice, expected_len << 1, dst->size, DEFAULT_ALIGNMENT);
-    //     dst->capacity = (1 + dst->len) << 1
-    // }
-    // memmove(&(new_slice.ptr[dst->len]), &item, dst->size);
-    // dst->len = expected_len;
-    // dst->ptr = new_slice.ptr;
+    size_t expected_len = (dst->size * dst->len) + buf.len_in_bytes;
+    slice_t new_slice = (slice_t){.len_in_bytes = dst->size * dst->capacity, .ptr = dst->ptr};
+    if (0 == new_slice.len_in_bytes) return 1;
+    if (dst->capacity * dst->size < expected_len){
+        new_slice = arena_allocator_resize_aligned(allocator, new_slice, expected_len << 1, dst->size, DEFAULT_ALIGNMENT);
+        dst->capacity = ((size_t)(buf.len_in_bytes/dst->size) + dst->len);
+    }
+    memmove(&(new_slice.ptr[dst->len * dst->size]), buf.ptr, buf.len_in_bytes);
+    dst->len += (size_t)(buf.len_in_bytes/dst->size);
+    dst->ptr = new_slice.ptr;
     return 0;
 
 }
 
 
-// int 
-// string_lib_append_strlit(arena_allocator_t *allocator, string_t *dst, const char *str_lit)
-// {
-//     if (NULL == str_lit) return 0;
-//     size_t len = strlen(str_lit);
-//     size_t expected_len = dst->len + len;
-//     slice_t new_slice = (slice_t){.len_in_bytes = dst->capacity, .ptr = dst->ptr};
-//     if (0 == new_slice.len_in_bytes) return 1;
-//     if (dst->capacity < expected_len){
-//         dst->capacity = expected_len << 1;
-//         new_slice = arena_allocator_resize(allocator, char, new_slice, dst->capacity);
-//     }
-//     memmove(&(new_slice.ptr[dst->len]), str_lit, len);
-//     dst->len = expected_len;
-//     dst->ptr = new_slice.ptr;
-//     return 0;
-
-// }
-
-
-// // side-effect: Table doubling
-// int 
-// string_lib_append_char(arena_allocator_t *allocator, string_t *dst, const char src_char)
-// {
-//     size_t expected_len = dst->len + 1;
-//     slice_t new_slice = (slice_t){.len_in_bytes = dst->capacity, .ptr = dst->ptr};
-//     if (0 == new_slice.len_in_bytes) return 1;
-//     if (dst->capacity < expected_len){
-//         dst->capacity = expected_len << 1;
-//         new_slice = arena_allocator_resize(allocator, char, new_slice, dst->capacity);
-//     }
-//     memmove(&(new_slice.ptr[dst->len]), &src_char, 1);
-//     dst->len = expected_len;
-//     dst->ptr = new_slice.ptr;
-//     return 0;
-// }
-
-
-// int 
-// string_lib_to_cstring(arena_allocator_t *allocator, string_t *string, char **cstring)
-// {
-//     slice_t cstring_slice = arena_allocator_alloc(allocator, char, string->len + 1);
-//     if (0 == cstring_slice.len_in_bytes) return 1;
-//     assert((0 != cstring_slice.len_in_bytes)&&"Unable to allocate slice");
-//     memset(cstring_slice.ptr, 0, cstring_slice.len_in_bytes);
-//     memmove(cstring_slice.ptr, string->ptr, string->len);
-//     *cstring = (char *)cstring_slice.ptr;
-//     return 0;
-// }
 
 #endif
 
