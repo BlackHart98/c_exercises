@@ -27,6 +27,17 @@ array_list_append_item_fn(arena_allocator_t *allocator, array_list_t *dst, const
 ARRAY_LIST_LOCAL int 
 array_list_append_slice_fn(arena_allocator_t *allocator, array_list_t *dst, const slice_t buf);
 
+ARRAY_LIST_LOCAL void 
+array_list_max_bound_fn(array_list_t *dst);
+
+
+ARRAY_LIST_LOCAL int 
+array_list_get_item_fn(array_list_t *dst, char *item, size_t pos);
+
+
+ARRAY_LIST_LOCAL int 
+array_list_insert_item_fn(array_list_t *dst, char *item, size_t pos);
+
 
 #ifdef ARRAY_LIST_IMPLEMENTATION
 
@@ -43,6 +54,33 @@ array_list_init_capacity_fn(arena_allocator_t *allocator, size_t init_capacity, 
         .ptr = (char *)string_slice.ptr
     };
 }
+
+
+void 
+array_list_max_bound_fn(array_list_t *dst)
+{
+    dst->len = dst->capacity;
+}
+
+
+int 
+array_list_get_item_fn(array_list_t *dst, char *item, size_t pos)
+{
+    if (pos > dst->len) return 1;
+    memmove(item, &(dst->ptr[pos * dst->size]), dst->size);
+    return 0;
+}
+
+
+int 
+array_list_insert_item_fn(array_list_t *dst, char *item, size_t pos)
+{
+    if (pos > dst->len) return 1;
+    memmove(&(dst->ptr[pos * dst->size]), item, dst->size);
+    return 0;
+}
+
+
 
 
 // side-effect: Table doubling

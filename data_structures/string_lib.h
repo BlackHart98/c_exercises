@@ -20,6 +20,13 @@ string_lib_init_capacity(arena_allocator_t *allocator, size_t init_size);
 STRING_LIB_LOCAL string_t 
 string_lib_init_with_strlit(arena_allocator_t *allocator, const char *str_lit);
 
+STRING_LIB_LOCAL string_t 
+string_lib_init_slice(arena_allocator_t *allocator, slice_t src_slice);
+
+STRING_LIB_LOCAL slice_t 
+string_lib_to_slice(const string_t *dst);
+
+
 STRING_LIB_LOCAL int 
 string_lib_append_string(arena_allocator_t *allocator, string_t *dst, string_t *src);
 
@@ -47,6 +54,19 @@ string_lib_init_capacity(arena_allocator_t *allocator, size_t init_size)
     };
 }
 
+
+string_t 
+string_lib_init_slice(arena_allocator_t *allocator, slice_t src_slice)
+{
+    slice_t string_slice = arena_allocator_alloc(allocator, char, src_slice.len_in_bytes << 1);
+    memmove(string_slice.ptr, src_slice.ptr, src_slice.len_in_bytes);
+    return (string_t){
+        .capacity = src_slice.len_in_bytes << 1,
+        .len = src_slice.len_in_bytes,
+        .ptr = (char *)src_slice.ptr
+    };
+}
+
 // the literal being passed is cloned into the string object
 string_t 
 string_lib_init_with_strlit(arena_allocator_t *allocator, const char *str_lit)
@@ -60,7 +80,7 @@ string_lib_init_with_strlit(arena_allocator_t *allocator, const char *str_lit)
 
     return (string_t){
         .capacity = string_slice.len_in_bytes,
-        .len = 0,
+        .len = str_len,
         .ptr = (char *)string_slice.ptr
     };
 }
@@ -103,6 +123,16 @@ string_lib_append_strlit(arena_allocator_t *allocator, string_t *dst, const char
     dst->ptr = new_slice.ptr;
     return 0;
 
+}
+
+
+slice_t 
+string_lib_to_slice(const string_t *dst)
+{
+    return (slice_t){
+        .ptr = dst->ptr,
+        .len_in_bytes = dst->len,
+    };
 }
 
 

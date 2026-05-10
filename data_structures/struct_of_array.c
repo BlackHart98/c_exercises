@@ -94,6 +94,17 @@ sum_x_pos(position_soa_t *pos_list)
     return result;
 }
 
+
+float 
+sum_y_pos(position_soa_t *pos_list)
+{
+    float result = 0;
+    for (int i = 0; i < pos_list->len; i++){
+        result += pos_list->y_pos[i];
+    }
+    return result;
+}
+
 int 
 main(int argc, char *argv[])
 {
@@ -117,6 +128,7 @@ main(int argc, char *argv[])
         }
     }
     printf("capacity: %lu, sum of the x positions: %.2f\n", pos_list.capacity, sum_x_pos(&pos_list));
+    printf("capacity: %lu, sum of the y positions: %.2f\n", pos_list.capacity, sum_y_pos(&pos_list));
     arena_allocator_deinit(&gpa);
     return 0;
 }
