@@ -2,6 +2,7 @@
 #define HASH_MAP_H
 
 #include <stdio.h>
+#include <string.h>
 
 
 #include "../memory_management/why_so_arena.c"
@@ -43,7 +44,6 @@ hash_map_init_capacity(arena_allocator_t *allocator, size_t init_capacity)
 {
     array_list_t result = array_list_init_capacity(allocator, key_value_t, init_capacity);
     array_list_max_bound_fn(&result);
-    // printf("capacity: %lu\n", result.len);
     return (hash_map_t){ .data = result, .size = 0 };
 }
 
@@ -69,12 +69,12 @@ hash_map_get(arena_allocator_t *allocator, hash_map_t *hs, slice_t key, int *val
 {
     if (hash_map_contains(hs, key)){
         size_t hash = hash_map_get_hash(key, hs->data.len);
-        // printf("capacity:: %lu, %lu\n", hs->data.len, key.len_in_bytes);
         key_value_t kv = {0};
         int ret = array_list_get_item_fn(&hs->data, (char *)&kv, hash);
         *value = kv.value;
         return 0;
     }
+    printf("Could not get item\n");
     return 1;
 }
 
@@ -84,8 +84,7 @@ hash_map_get_hash(slice_t input, size_t size)
 {
     char *ptr = (char *)input.ptr;
     size_t result = 0;
-    for (int i = 0; i < input.len_in_bytes; i++) result += ptr[i];
-    // printf("hash: %lu, len: %lu ...\n", result, input.len_in_bytes);
+    for (int i = 0; i < input.len_in_bytes; i++) result += ptr[i] * (2 << i);
     return result % size;
 }
 
@@ -93,7 +92,12 @@ hash_map_get_hash(slice_t input, size_t size)
 char 
 hash_map_contains(hash_map_t *hs, slice_t key)
 {
-    return 1;
+    size_t hash = hash_map_get_hash(key, hs->data.len);
+    key_value_t kv = {0};
+    int ret = array_list_get_item_fn(&hs->data, (char *)&kv, hash);
+    if (NULL == kv.key.ptr) return 0;
+    if (0 == memcmp(key.ptr, kv.key.ptr, key.len_in_bytes)) return 1;
+    return 0;
 }
 
 #endif
