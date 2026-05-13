@@ -9,7 +9,7 @@ int
 main(int argc, char* argv[])
 {
     arena_allocator_t gpa = arena_allocator_init_page_default(c_allocator, KB(1));
-    array_list_t float_list = array_list_init_capacity(&gpa, float, 200); // float_list: [dynamic]float
+    array_list_t float_list = array_list_init_capacity(&gpa, float, 10); // float_list: [dynamic]float
     if (NULL != float_list.ptr){
         float input_array[] = {8, 9, 10, 4.5, 0.7};
 
