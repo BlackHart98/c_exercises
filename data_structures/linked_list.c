@@ -25,7 +25,7 @@ int main(int argc, char* argv[]){
     linked_list_t * my_linked_list = NULL;
     linked_list_add_head(&my_linked_list, 3);
     linked_list_add_head(&my_linked_list, 4);
-    linked_list_remove_tail(&my_linked_list);
+    // linked_list_remove_tail(&my_linked_list);
     linked_list_traverse(my_linked_list);
     return 0;
 }
@@ -49,7 +49,7 @@ void linked_list_add_head(linked_list_t ** linked_list, int item){
     while(temp_node->next->next != NULL){
         temp_node = temp_node->next;
     }
-    // *linked_list = new_node;
+    *linked_list = new_node;
 }
 
 
@@ -61,7 +61,7 @@ void linked_list_add_tail(linked_list_t ** linked_list, int item){
         *linked_list = new_node;
         return;
     }
-    linked_list_t * temp_node = linked_list;
+    linked_list_t * temp_node = *linked_list;
     while(temp_node->next->next != NULL){
         temp_node = temp_node->next;
     }

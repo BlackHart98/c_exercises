@@ -19,7 +19,6 @@ typedef struct key_value_t {
 
 typedef struct hash_map_t {
     array_list_t data;
-    // array_list_t entry;
     size_t size;
 } hash_map_t;
 
@@ -48,6 +47,7 @@ hash_map_init_capacity(arena_allocator_t *allocator, size_t init_capacity)
 }
 
 
+// The put function is not correct, it neither does linearing probing nor chaining
 int 
 hash_map_put(arena_allocator_t *allocator, hash_map_t *hs, key_value_t key_value)
 {
@@ -56,10 +56,20 @@ hash_map_put(arena_allocator_t *allocator, hash_map_t *hs, key_value_t key_value
         assert(0&&"Capacity exceeded!");
     }
     // put item into the hash map
+    int ret = 0;
     size_t hash = hash_map_get_hash(key_value.key, hs->data.len);
-    int ret = array_list_insert_item_fn(&hs->data, (char *)&key_value, hash);
-    if (0 != ret) return 1;
-    hs->size += 1;
+    if (hash_map_contains(hs, key_value.key)){
+        ret = array_list_insert_item_fn(&hs->data, (char *)&key_value, hash);
+    } else {
+        key_value_t kv = {0};
+        ret = array_list_get_item_fn(&hs->data, (char *)&kv, hash);
+        if (NULL != kv.key.ptr) { 
+            // go to the next open space
+        }
+        ret = array_list_insert_item_fn(&hs->data, (char *)&key_value, hash);
+        if (0 != ret) return 1;
+        hs->size += 1;
+    }
     return 0;
 }
 
@@ -95,7 +105,7 @@ hash_map_contains(hash_map_t *hs, slice_t key)
     size_t hash = hash_map_get_hash(key, hs->data.len);
     key_value_t kv = {0};
     int ret = array_list_get_item_fn(&hs->data, (char *)&kv, hash);
-    if (NULL == kv.key.ptr) return 0;
+    if (NULL == kv.key.ptr || key.len_in_bytes != kv.key.len_in_bytes) return 0;
     if (0 == memcmp(key.ptr, kv.key.ptr, key.len_in_bytes)) return 1;
     return 0;
 }

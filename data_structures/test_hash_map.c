@@ -17,6 +17,8 @@ main(int argc, char *argv[])
         string_t str = string_lib_init_with_strlit(&gpa, "test_key");
         ret = hash_map_put(
             &gpa, &some_map, (key_value_t){ .key = string_lib_to_slice(&str), .value = 95 });
+        ret = hash_map_put(
+            &gpa, &some_map, (key_value_t){ .key = string_lib_to_slice(&str), .value = 5 });
         int result = 0;
         ret = hash_map_get(&gpa, &some_map, string_lib_to_slice(&str), &result);
         char *cstring = NULL;
