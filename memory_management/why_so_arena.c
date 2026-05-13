@@ -1,5 +1,5 @@
 // #define WSA_IMPLEMENTATION
-
+// I have to handle fragmentation, to avoid waste
 
 #ifndef WHY_SO_ARENA_H
 #define WHY_SO_ARENA_H
@@ -31,9 +31,10 @@
 
 
 // These are the goodies
-#define arena_allocator_alloc(arena, T, len)            arena_allocator_alloc_aligned(arena, len, sizeof(T), DEFAULT_ALIGNMENT)
-#define arena_allocator_resize(arena, T, old_slice, new_len)           arena_allocator_resize_aligned(arena, old_slice, new_len, sizeof(T), DEFAULT_ALIGNMENT)
-#define arena_allocator_init_page_default(allocator, capacity)    arena_allocator_init(allocator, capacity, DEFAULT_PAGE_SIZE)
+#define arena_allocator_alloc(allocator, T, len)                    arena_allocator_alloc_aligned(allocator, len, sizeof(T), DEFAULT_ALIGNMENT)
+#define arena_allocator_alloc_item(allocator, T)                    arena_allocator_alloc_item_aligned(allocator, sizeof(T), DEFAULT_ALIGNMENT);
+#define arena_allocator_resize(allocator, T, old_slice, new_len)    arena_allocator_resize_aligned(allocator, old_slice, new_len, sizeof(T), DEFAULT_ALIGNMENT)
+#define arena_allocator_init_page_default(allocator, capacity)      arena_allocator_init(allocator, capacity, DEFAULT_PAGE_SIZE)
 
 
 
@@ -199,6 +200,14 @@ arena_allocator_alloc_aligned(arena_allocator_t *arena_allocator, size_t len, si
         return arena_alloc_aligned(&(new_node->arena), len, size_, alignment_);
     }
     return result;
+}
+
+
+void* 
+arena_allocator_alloc_item_aligned(arena_allocator_t *arena_allocator, size_t size_, size_t alignment_)
+{
+    slice_t item_slice = arena_allocator_alloc_aligned(arena_allocator, 1, size_, alignment_);
+    return item_slice.ptr;
 }
 
 
