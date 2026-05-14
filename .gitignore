@@ -11,3 +11,6 @@ profile.json.gz
 recording.trace
 filter
 **/zig-out/
+**/externals/
+nob
+nob.old

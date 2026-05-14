@@ -6,6 +6,8 @@
 #include "../data_structures/array_list.h"
 
 
+#include "raylib.h"
+
 #define DEFAULT_SPEED 2
 
 
@@ -53,7 +55,6 @@ position_soa_append_item_fn(arena_allocator_t *allocator, position_soa_t *dst, c
     slice_t y_slice = (slice_t){.len_in_bytes = sizeof(float) * dst->capacity, .ptr = dst->y_pos};
     slice_t z_slice = (slice_t){.len_in_bytes = sizeof(float) * dst->capacity, .ptr = dst->z_pos};
     slice_t speed_slice = (slice_t){.len_in_bytes = sizeof(float) * dst->capacity, .ptr = dst->speed};
-    // slice_t speed = arena_allocator_alloc_aligned(allocator, (init_capacity * sizeof(float)), sizeof(float), DEFAULT_ALIGNMENT);
     if (0 == x_slice.len_in_bytes || 0 == y_slice.len_in_bytes || 0 == z_slice.len_in_bytes || 0 == speed_slice.len_in_bytes) return 1;
     if (dst->capacity * sizeof(float) < expected_len){
         x_slice = arena_allocator_resize_aligned(allocator, x_slice, expected_len << 1, sizeof(float), DEFAULT_ALIGNMENT);
@@ -80,7 +81,7 @@ int
 position_soa_append_slice_fn(arena_allocator_t *allocator, position_soa_t *dst, const slice_t position_slice)
 {
     position_t *items = (position_t *)position_slice.ptr;
-    for (int i = 0; i < position_slice.len_in_bytes/sizeof(position_t); i++) {
+    for (size_t i = 0; i < position_slice.len_in_bytes/sizeof(position_t); i++) {
         int ret = position_soa_append_item_fn(allocator, dst, items[i]);
         if (0 != ret) return 1;
     }
@@ -101,7 +102,6 @@ position_soa_get_position_fn(position_soa_t *dst, size_t index)
 
 typedef struct player_t {
     size_t pos_idx;
-    size_t vel_idx;
 } player_t;
 
 
@@ -116,22 +116,20 @@ spawn_player(arena_allocator_t *allocator, position_soa_t *pos_list, position_t 
 int
 main(void)
 {
-    arena_allocator_t gpa = arena_allocator_init_page_default(c_allocator, KB(1));
-    array_list_t player_list = array_list_init_capacity(&gpa, player_t, 10); // float_list: [dynamic]player_t
-    position_soa_t pos_list = position_soa_init_capacity_fn(&gpa, 200);
+    const int screen_height = 600;
+    const int screen_width = 800;
+    InitWindow(screen_width, screen_height, "Hello world");
 
-    player_t new_player = spawn_player(
-        &gpa, &pos_list, (position_t){.x_pos = 1, .y_pos = 2, .z_pos = 0, .speed = DEFAULT_SPEED});
-    player_t another_player = spawn_player(
-        &gpa, &pos_list, (position_t){.x_pos = 2, .y_pos = 2, .z_pos = 0, .speed = DEFAULT_SPEED});
-    array_list_append_item_fn(&gpa, &player_list, (char *)&new_player);
-    array_list_append_item_fn(&gpa, &player_list, (char *)&another_player);
-    
-    player_t *player_itr = (player_t *)player_list.ptr;
-    for (int i = 0; i < player_list.len; i++){
-        printf("player_list[%d]: %lu\n", i, player_itr[i].pos_idx);
+    SetTargetFPS(60);
+
+    while (!WindowShouldClose()){
+        BeginDrawing();
+        {
+            ClearBackground(RAYWHITE);
+            DrawText("My very first window", 120, 90, 18, BLACK);
+        }
+        EndDrawing();
     }
-
-    arena_allocator_deinit(&gpa);
+    CloseWindow();
     return 0;
 }
