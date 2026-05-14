@@ -16,5 +16,7 @@ main(void)
     while ((output[i] = sample[i]) != '\0'){
         printf("item:: output[%d] %c\n", i, output[i]); i++;
     }
+
+    printf("hello 😁\n");
     return 0;
 }
