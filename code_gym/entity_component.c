@@ -120,8 +120,10 @@ main(void)
     array_list_t player_list = array_list_init_capacity(&gpa, player_t, 10); // float_list: [dynamic]player_t
     position_soa_t pos_list = position_soa_init_capacity_fn(&gpa, 200);
 
-    player_t new_player = spawn_player(&gpa, &pos_list, (position_t){.x_pos = 1, .y_pos = 2, .z_pos = 0, .speed = DEFAULT_SPEED});
-    player_t another_player = spawn_player(&gpa, &pos_list, (position_t){.x_pos = 2, .y_pos = 2, .z_pos = 0, .speed = DEFAULT_SPEED});
+    player_t new_player = spawn_player(
+        &gpa, &pos_list, (position_t){.x_pos = 1, .y_pos = 2, .z_pos = 0, .speed = DEFAULT_SPEED});
+    player_t another_player = spawn_player(
+        &gpa, &pos_list, (position_t){.x_pos = 2, .y_pos = 2, .z_pos = 0, .speed = DEFAULT_SPEED});
     array_list_append_item_fn(&gpa, &player_list, (char *)&new_player);
     array_list_append_item_fn(&gpa, &player_list, (char *)&another_player);
     
