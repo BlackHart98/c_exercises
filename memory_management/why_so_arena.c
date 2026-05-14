@@ -138,6 +138,9 @@ arena_allocator_init(allocator_vtable allocator, size_t capacity, size_t page_si
 ARENA_LOCAL slice_t 
 arena_allocator_alloc_aligned(arena_allocator_t *arena_allocator, size_t len, size_t size_, size_t alignment_);
 
+ARENA_LOCAL void* 
+arena_allocator_alloc_item_aligned(arena_allocator_t *arena_allocator, size_t size_, size_t alignment_);
+
 ARENA_LOCAL void 
 arena_allocator_reset(arena_allocator_t *arena_allocator);
 
