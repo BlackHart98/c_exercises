@@ -126,7 +126,7 @@ main(void)
         BeginDrawing();
         {
             ClearBackground(RAYWHITE);
-            DrawText("My very first window", 120, 90, 18, BLACK);
+            DrawText("My very first window", 120, 90, 20, BLACK);
         }
         EndDrawing();
     }
