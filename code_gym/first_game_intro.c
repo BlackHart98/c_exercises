@@ -4,8 +4,43 @@
 
 
 typedef enum {LOGO, TITLE, GAMEPLAY, ENDING } game_screen_t;
+typedef struct game_state_t {
+    game_screen_t screen;
+    int frames_counter;
+    int game_paused;
+} game_state_t;
 
 
+void update_game_fn(game_state_t *state)
+{
+    switch (state->screen) {
+        case LOGO: {
+            state->frames_counter++;
+            if (state->frames_counter > 180) {
+                state->screen = TITLE;    // Change to TITLE screen after 3 seconds
+                state->frames_counter = 0;
+            }
+            break;
+        }
+        case TITLE: {
+            state->frames_counter++;
+            if (IsKeyPressed(KEY_ENTER)) state->screen = GAMEPLAY;
+            break;
+        }
+        case GAMEPLAY: {
+            if (!state->game_paused) {
+
+            }
+            if (IsKeyPressed(KEY_ENTER)) state->screen = ENDING;
+            break;
+        }
+        case ENDING: {
+            state->frames_counter++;
+            if (IsKeyPressed(KEY_ENTER)) state->screen = TITLE;
+            break;
+        }
+    }
+} 
 
 int
 main(void)
@@ -15,47 +50,21 @@ main(void)
     InitWindow(screen_width, screen_height, "PROJECT: BLOCKS GAME");
 
     SetTargetFPS(60);
- 
-    game_screen_t screen = LOGO;
-
-    int frames_counter = 0;
     int game_result = -1;
-    int game_paused = 0;
+
+    game_state_t state = (game_state_t){
+        .screen = LOGO, 
+        .frames_counter = 0, 
+        .game_paused = 0};
 
     // Main loop
     while (!WindowShouldClose()) {
-        switch (screen) {
-            case LOGO: {
-                frames_counter++;
-                if (frames_counter > 180) {
-                    screen = TITLE;    // Change to TITLE screen after 3 seconds
-                    frames_counter = 0;
-                }
-                break;
-            }
-            case TITLE: {
-                frames_counter++;
-                if (IsKeyPressed(KEY_ENTER)) screen = GAMEPLAY;
-                break;
-            }
-            case GAMEPLAY: {
-                if (!game_paused) {
-
-                }
-                if (IsKeyPressed(KEY_ENTER)) screen = ENDING;
-                break;
-            }
-            case ENDING: {
-                frames_counter++;
-                if (IsKeyPressed(KEY_ENTER)) screen = TITLE;
-                break;
-            }
-        }
+        update_game_fn(&state);
         // Render
         BeginDrawing();
         {
             ClearBackground(RAYWHITE);
-            switch (screen) {
+            switch (state.screen) {
                 case LOGO: {
                     DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
                     DrawText("WAIT for 3 SECONDS...", 290, 220, 20, GRAY);
