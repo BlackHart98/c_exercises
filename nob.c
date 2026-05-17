@@ -20,6 +20,7 @@ main(int argc, char *argv[])
     } objects [] = {
         {.src_file = "code_gym/entity_component.c", .build_file = BUILD_FOLDER"entity_component"},
         {.src_file = "code_gym/game_inputs.c", .build_file = BUILD_FOLDER"game_inputs"},
+        {.src_file = "code_gym/game_collision.c", .build_file = BUILD_FOLDER"game_collision"},
         {.src_file = "code_gym/first_game_intro.c", .build_file = BUILD_FOLDER"first_game_intro"},
         {.src_file = "code_gym/creating_blocks.c", .build_file = BUILD_FOLDER"creating_blocks"},
     };
