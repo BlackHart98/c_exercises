@@ -8,10 +8,12 @@ typedef struct game_state_t {
     game_screen_t screen;
     int frames_counter;
     int game_paused;
+    int game_result;
 } game_state_t;
 
 
-void update_game_fn(game_state_t *state)
+void 
+update_game_fn(game_state_t *state)
 {
     switch (state->screen) {
         case LOGO: {
@@ -40,7 +42,42 @@ void update_game_fn(game_state_t *state)
             break;
         }
     }
-} 
+}
+
+void 
+draw_game_fn(game_state_t *state, const int screen_height,  const int screen_width)
+{
+    BeginDrawing();
+    {
+        ClearBackground(RAYWHITE);
+        switch (state->screen) {
+            case LOGO: {
+                DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
+                DrawText("WAIT for 3 SECONDS...", 290, 220, 20, GRAY);
+                break;
+            }
+            case TITLE: {
+                DrawRectangle(0, 0, screen_width, screen_height, GREEN);
+                DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
+                DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
+                break;
+            }
+            case GAMEPLAY: {
+                DrawRectangle(0, 0, screen_width, screen_height, PURPLE);
+                DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
+                DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
+                break;
+            }
+            case ENDING: {
+                DrawRectangle(0, 0, screen_width, screen_height, BLUE);
+                DrawText("ENDING SCREEN", 20, 20, 40, DARKBLUE);
+                DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, DARKBLUE);
+                break;
+            }
+        }
+    }
+    EndDrawing();
+}
 
 int
 main(void)
@@ -50,8 +87,6 @@ main(void)
     InitWindow(screen_width, screen_height, "PROJECT: BLOCKS GAME");
 
     SetTargetFPS(60);
-    int game_result = -1;
-
     game_state_t state = (game_state_t){
         .screen = LOGO, 
         .frames_counter = 0, 
@@ -60,38 +95,9 @@ main(void)
     // Main loop
     while (!WindowShouldClose()) {
         update_game_fn(&state);
-        // Render
-        BeginDrawing();
-        {
-            ClearBackground(RAYWHITE);
-            switch (state.screen) {
-                case LOGO: {
-                    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
-                    DrawText("WAIT for 3 SECONDS...", 290, 220, 20, GRAY);
-                    break;
-                }
-                case TITLE: {
-                    DrawRectangle(0, 0, screen_width, screen_height, GREEN);
-                    DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
-                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
-                    break;
-                }
-                case GAMEPLAY: {
-                    DrawRectangle(0, 0, screen_width, screen_height, PURPLE);
-                    DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
-                    DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
-                    break;
-                }
-                case ENDING: {
-                    DrawRectangle(0, 0, screen_width, screen_height, BLUE);
-                    DrawText("ENDING SCREEN", 20, 20, 40, DARKBLUE);
-                    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, DARKBLUE);
-                    break;
-                }
-            }
-        }
-        EndDrawing();
+        draw_game_fn(&state, screen_height, screen_width);
     }
+
     CloseWindow();  
     return 0;
 }

@@ -19,7 +19,9 @@ main(int argc, char *argv[])
         const char *build_file;
     } objects [] = {
         {.src_file = "code_gym/entity_component.c", .build_file = BUILD_FOLDER"entity_component"},
+        {.src_file = "code_gym/game_inputs.c", .build_file = BUILD_FOLDER"game_inputs"},
         {.src_file = "code_gym/first_game_intro.c", .build_file = BUILD_FOLDER"first_game_intro"},
+        {.src_file = "code_gym/creating_blocks.c", .build_file = BUILD_FOLDER"creating_blocks"},
     };
     for (int i = 0; i < NOB_ARRAY_LEN(objects); i++){
         nob_cc(&cmd);
