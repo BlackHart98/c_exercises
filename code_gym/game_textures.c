@@ -8,7 +8,7 @@
 
 #define BRICKS_POSITION_Y       50
 
-#define LESSON05_TEXTURES
+#define HAS_TEXTURES
 
 typedef enum {LOGO, TITLE, GAMEPLAY, ENDING } game_screen_t;
 
@@ -20,7 +20,7 @@ typedef struct player_t {
     Vector2 size;
     Rectangle bounds;
     int lifes;
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     Texture2D *texture;
 #endif
 } player_t;
@@ -31,7 +31,7 @@ typedef struct ball_t {
     Vector2 speed;
     float radius;
     int active;
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     Texture2D *texture;
 #endif
 } ball_t;
@@ -43,7 +43,7 @@ typedef struct brick_t {
     Rectangle bounds;
     int resistance;
     int active;
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     Texture2D *texture;
 #endif
 } brick_t;
@@ -73,7 +73,7 @@ draw_game_fn(
     game_state_t *state
     , const int screen_height
     , const int screen_width
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     , Texture2D *tex_logo
 #endif
 );
@@ -84,7 +84,7 @@ objects_init(
     const int screen_height 
     , const int screen_width 
     , char *buf
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     , Texture2D *tex_ball
     , Texture2D *tex_paddle
     , Texture2D *tex_brick
@@ -111,7 +111,7 @@ main(void)
             screen_height
             , screen_width
             , (char *)buf
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
             , &tex_ball
             , &tex_paddle
             , &tex_brick
@@ -130,7 +130,7 @@ main(void)
                 &state
                 , screen_height
                 , screen_width
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
                 , &tex_logo
 #endif
             );
@@ -150,7 +150,7 @@ objects_init(
     const int screen_height
     , const int screen_width
     , char *buf
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     , Texture2D *tex_ball
     , Texture2D *tex_paddle
     , Texture2D *tex_brick
@@ -166,7 +166,7 @@ objects_init(
             bricks[j][i].position = (Vector2){ i*bricks[j][i].size.x, j*bricks[j][i].size.y + BRICKS_POSITION_Y };
             bricks[j][i].bounds = (Rectangle){ bricks[j][i].position.x, bricks[j][i].position.y, bricks[j][i].size.x, bricks[j][i].size.y };
             bricks[j][i].active = 1;
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
             bricks[j][i].texture = tex_brick;
 #endif
         }
@@ -176,7 +176,7 @@ objects_init(
         .speed = (Vector2){ 8.0f, 0.0f },
         .size = (Vector2){ 100, 24 },
         .lifes = PLAYER_LIFES,
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
         .texture = tex_paddle
 #endif
     };
@@ -186,7 +186,7 @@ objects_init(
     ball.active = false;
     ball.position = (Vector2){ player.position.x + player.size.x/2, player.position.y - ball.radius*2 };
     ball.speed = (Vector2){ 4.0f, 4.0f };
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     ball.texture = tex_ball;
 #endif
     memcpy(buf, bricks, sizeof(brick_t) * BRICKS_LINES * BRICKS_PER_LINE);
@@ -299,7 +299,7 @@ draw_game_fn(
     game_state_t *state
     , const int screen_height
     , const int screen_width
-#if defined(LESSON05_TEXTURES)
+#if defined(HAS_TEXTURES)
     , Texture2D *tex_logo
 #endif
 )
@@ -337,7 +337,7 @@ draw_game_fn(
                         }
                     }
                 }
-#elif defined(LESSON05_TEXTURES)
+#elif defined(HAS_TEXTURES)
                 DrawTextureEx(*(state->objects->player.texture), state->objects->player.position, 0.0f, 1.0f, WHITE);
                 DrawTexture(
                     *(state->objects->ball.texture), 
