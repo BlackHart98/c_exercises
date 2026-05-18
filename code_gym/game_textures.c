@@ -8,7 +8,10 @@
 
 #define BRICKS_POSITION_Y       50
 
+#define LESSON05_TEXTURES
+
 typedef enum {LOGO, TITLE, GAMEPLAY, ENDING } game_screen_t;
+
 
 // Player structure
 typedef struct player_t {
@@ -17,6 +20,9 @@ typedef struct player_t {
     Vector2 size;
     Rectangle bounds;
     int lifes;
+#if defined(LESSON05_TEXTURES)
+    Texture2D *texture;
+#endif
 } player_t;
 
 // Ball structure
@@ -25,6 +31,9 @@ typedef struct ball_t {
     Vector2 speed;
     float radius;
     int active;
+#if defined(LESSON05_TEXTURES)
+    Texture2D *texture;
+#endif
 } ball_t;
 
 // Bricks structure
@@ -34,6 +43,9 @@ typedef struct brick_t {
     Rectangle bounds;
     int resistance;
     int active;
+#if defined(LESSON05_TEXTURES)
+    Texture2D *texture;
+#endif
 } brick_t;
 
 
@@ -57,12 +69,27 @@ update_game_fn(game_state_t *state, const int screen_height,  const int screen_w
 
 
 void 
-draw_game_fn(game_state_t *state, const int screen_height,  const int screen_width);
+draw_game_fn(
+    game_state_t *state
+    , const int screen_height
+    , const int screen_width
+#if defined(LESSON05_TEXTURES)
+    , Texture2D *tex_logo
+#endif
+);
 
 // Objects
 objects_t
-objects_init(const int screen_height,  const int screen_width, char *buf);
-
+objects_init(
+    const int screen_height 
+    , const int screen_width 
+    , char *buf
+#if defined(LESSON05_TEXTURES)
+    , Texture2D *tex_ball
+    , Texture2D *tex_paddle
+    , Texture2D *tex_brick
+#endif
+);
 
 
 int
@@ -70,11 +97,26 @@ main(void)
 {
     const int screen_height = 600;
     const int screen_width = 800;
+
     InitWindow(screen_width, screen_height, "PROJECT: BLOCKS GAME");
     {
+        Texture2D tex_logo = LoadTexture("code_gym/resources/raylib_logo.png");
+        Texture2D tex_ball = LoadTexture("code_gym/resources/ball.png");
+        Texture2D tex_paddle = LoadTexture("code_gym/resources/paddle.png");
+        Texture2D tex_brick = LoadTexture("code_gym/resources/brick.png");
+
         SetTargetFPS(60);
         brick_t buf[BRICKS_LINES][BRICKS_PER_LINE] = {0};
-        objects_t objects = objects_init(screen_height, screen_width, (char *)buf);
+        objects_t objects = objects_init(
+            screen_height
+            , screen_width
+            , (char *)buf
+#if defined(LESSON05_TEXTURES)
+            , &tex_ball
+            , &tex_paddle
+            , &tex_brick
+#endif
+        );
         game_state_t state = (game_state_t){
             .screen = LOGO, 
             .frames_counter = 0, 
@@ -84,8 +126,19 @@ main(void)
         // Main loop
         while (!WindowShouldClose()) {
             update_game_fn(&state, screen_height, screen_width);
-            draw_game_fn(&state, screen_height, screen_width);
+            draw_game_fn(
+                &state
+                , screen_height
+                , screen_width
+#if defined(LESSON05_TEXTURES)
+                , &tex_logo
+#endif
+            );
         }
+        UnloadTexture(tex_logo);
+        UnloadTexture(tex_ball);
+        UnloadTexture(tex_paddle);
+        UnloadTexture(tex_brick);
     }
     CloseWindow();  
     return 0;
@@ -93,7 +146,16 @@ main(void)
 
 
 objects_t
-objects_init(const int screen_height,  const int screen_width, char *buf)
+objects_init(
+    const int screen_height
+    , const int screen_width
+    , char *buf
+#if defined(LESSON05_TEXTURES)
+    , Texture2D *tex_ball
+    , Texture2D *tex_paddle
+    , Texture2D *tex_brick
+#endif
+)
 {
     brick_t bricks[BRICKS_LINES][BRICKS_PER_LINE] = {0};
     for (int j = 0; j < BRICKS_LINES; j++)
@@ -104,6 +166,9 @@ objects_init(const int screen_height,  const int screen_width, char *buf)
             bricks[j][i].position = (Vector2){ i*bricks[j][i].size.x, j*bricks[j][i].size.y + BRICKS_POSITION_Y };
             bricks[j][i].bounds = (Rectangle){ bricks[j][i].position.x, bricks[j][i].position.y, bricks[j][i].size.x, bricks[j][i].size.y };
             bricks[j][i].active = 1;
+#if defined(LESSON05_TEXTURES)
+            bricks[j][i].texture = tex_brick;
+#endif
         }
     }
     player_t player = (player_t){ 
@@ -111,6 +176,9 @@ objects_init(const int screen_height,  const int screen_width, char *buf)
         .speed = (Vector2){ 8.0f, 0.0f },
         .size = (Vector2){ 100, 24 },
         .lifes = PLAYER_LIFES,
+#if defined(LESSON05_TEXTURES)
+        .texture = tex_paddle
+#endif
     };
 
     ball_t ball = (ball_t){0};
@@ -118,6 +186,9 @@ objects_init(const int screen_height,  const int screen_width, char *buf)
     ball.active = false;
     ball.position = (Vector2){ player.position.x + player.size.x/2, player.position.y - ball.radius*2 };
     ball.speed = (Vector2){ 4.0f, 4.0f };
+#if defined(LESSON05_TEXTURES)
+    ball.texture = tex_ball;
+#endif
     memcpy(buf, bricks, sizeof(brick_t) * BRICKS_LINES * BRICKS_PER_LINE);
     return (objects_t){
         .player = player,
@@ -224,7 +295,14 @@ update_game_fn(game_state_t *state, const int screen_height,  const int screen_w
 
 
 void 
-draw_game_fn(game_state_t *state, const int screen_height,  const int screen_width)
+draw_game_fn(
+    game_state_t *state
+    , const int screen_height
+    , const int screen_width
+#if defined(LESSON05_TEXTURES)
+    , Texture2D *tex_logo
+#endif
+)
 {
     brick_t bricks[BRICKS_LINES][BRICKS_PER_LINE] = {0};
     memcpy(bricks, state->objects->bricks, sizeof(brick_t) * BRICKS_LINES * BRICKS_PER_LINE);
@@ -233,8 +311,7 @@ draw_game_fn(game_state_t *state, const int screen_height,  const int screen_wid
         ClearBackground(RAYWHITE);
         switch (state->screen) {
             case LOGO: {
-                DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
-                DrawText("WAIT for 3 SECONDS...", 290, 220, 20, GRAY);
+                DrawTexture(*tex_logo, screen_width/2 - tex_logo->width/2, screen_height/2 - tex_logo->height/2, WHITE);
                 break;
             }
             case TITLE: {
@@ -245,6 +322,7 @@ draw_game_fn(game_state_t *state, const int screen_height,  const int screen_wid
                 break;
             }
             case GAMEPLAY: {
+#if defined(LESSON02_SHAPES)
                 DrawRectangle(
                     state->objects->player.position.x, 
                     state->objects->player.position.y, 
@@ -259,6 +337,21 @@ draw_game_fn(game_state_t *state, const int screen_height,  const int screen_wid
                         }
                     }
                 }
+#elif defined(LESSON05_TEXTURES)
+                DrawTextureEx(*(state->objects->player.texture), state->objects->player.position, 0.0f, 1.0f, WHITE);
+                DrawTexture(
+                    *(state->objects->ball.texture), 
+                    state->objects->ball.position.x - state->objects->ball.radius/2, 
+                    state->objects->ball.position.y - state->objects->ball.radius/2, MAROON);
+                for (int j = 0; j < BRICKS_LINES; j++){
+                    for (int i = 0; i < BRICKS_PER_LINE; i++){
+                        if (bricks[j][i].active){
+                            if ((i + j)%2 == 0) DrawTextureEx(*(bricks[j][i].texture), bricks[j][i].position, 0.0f, 1.0f, GRAY);
+                            else DrawTextureEx(*(bricks[j][i].texture), bricks[j][i].position, 0.0f, 1.0f, DARKGRAY);
+                        }
+                    }
+                }
+#endif
                 for (int i = 0; i < state->objects->player.lifes; i++) DrawRectangle(20 + 40*i, screen_height - 30, 35, 10, LIGHTGRAY);
                 if (state->game_paused) DrawText("GAME PAUSED", screen_width/2 - MeasureText("GAME PAUSED", 40)/2, screen_height/2 + 60, 40, GRAY);
                 break;
