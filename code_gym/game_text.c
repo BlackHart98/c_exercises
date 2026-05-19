@@ -75,6 +75,7 @@ draw_game_fn(
     , const int screen_width
 #if defined(HAS_TEXTURES)
     , Texture2D *tex_logo
+    , Font *font
 #endif
 );
 
@@ -105,6 +106,8 @@ main(void)
         Texture2D tex_paddle = LoadTexture("code_gym/resources/paddle.png");
         Texture2D tex_brick = LoadTexture("code_gym/resources/brick.png");
 
+        Font font = LoadFont("resources/setback.png");
+
         SetTargetFPS(60);
         brick_t buf[BRICKS_LINES][BRICKS_PER_LINE] = {0};
         objects_t objects = objects_init(
@@ -132,6 +135,7 @@ main(void)
                 , screen_width
 #if defined(HAS_TEXTURES)
                 , &tex_logo
+                , &font
 #endif
             );
         }
@@ -301,6 +305,7 @@ draw_game_fn(
     , const int screen_width
 #if defined(HAS_TEXTURES)
     , Texture2D *tex_logo
+    , Font *font
 #endif
 )
 {
@@ -315,8 +320,7 @@ draw_game_fn(
                 break;
             }
             case TITLE: {
-                DrawRectangle(0, 0, screen_width, screen_height, GREEN);
-                DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
+                DrawTextEx(*font, "BLOCKS", (Vector2){ 100, 80 }, 160, 10, MAROON);
                 if ((state->frames_counter/30)%2 == 0) 
                     DrawText("PRESS [ENTER] to START", GetScreenWidth()/2 - MeasureText("PRESS [ENTER] to START", 20)/2, GetScreenHeight()/2 + 60, 20, DARKGRAY);
                 break;
@@ -357,8 +361,7 @@ draw_game_fn(
                 break;
             }
             case ENDING: {
-                DrawRectangle(0, 0, screen_width, screen_height, BLUE);
-                DrawText("ENDING SCREEN", 20, 20, 40, DARKBLUE);
+                DrawTextEx(*font, "GAME FINISHED", (Vector2){ 80, 100 }, 80, 6, MAROON);
                 if ((state->frames_counter/30)%2 == 0) 
                     DrawText("PRESS [ENTER] TO PLAY AGAIN", GetScreenWidth()/2 - MeasureText("PRESS [ENTER] TO PLAY AGAIN", 20)/2, GetScreenHeight()/2 + 60, 20, DARKGRAY);
                 break;
