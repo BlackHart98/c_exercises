@@ -38,6 +38,8 @@ main(int argc, char *argv[])
         nob_cc_add_framework(&cmd, "Cocoa");
         nob_cc_add_framework(&cmd, "GLUT");
         nob_cc_add_framework(&cmd, "OpenGL");
+#else
+        static_assert(0, "Unsupported platform");
 #endif
         nob_cc_inputs(&cmd, "code_gym/externals/raylib6/lib/libraylib.a");
         nob_cc_inputs(&cmd, objects[i].src_file);
