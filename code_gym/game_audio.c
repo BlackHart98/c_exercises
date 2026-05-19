@@ -113,7 +113,7 @@ main(void)
         Texture2D tex_paddle = LoadTexture("code_gym/resources/paddle.png");
         Texture2D tex_brick = LoadTexture("code_gym/resources/brick.png");
 
-        Music music = LoadMusicStream("code_gym/resources/blockshock.mod");
+        Music music = LoadMusicStream("code_gym/resources/2-04 Cassanova Complex.mp3");
     
         PlayMusicStream(music);         // Start music streaming
 
@@ -145,6 +145,7 @@ main(void)
 
         // Main loop
         while (!WindowShouldClose()) {
+            UpdateMusicStream(music);
             update_game_fn(&state, &audio_system, screen_height, screen_width);
             draw_game_fn(
                 &state
