@@ -64,8 +64,14 @@ typedef struct game_state_t {
 } game_state_t;
 
 
+typedef struct audio_system_t {
+    Sound fx_start;
+    Sound fx_bounce;
+    Sound fx_explode;
+} audio_system_t;
+
 void 
-update_game_fn(game_state_t *state, const int screen_height,  const int screen_width);
+update_game_fn(game_state_t *state, audio_system_t* audio_system, const int screen_height,  const int screen_width);
 
 
 void 
@@ -100,13 +106,24 @@ main(void)
     const int screen_width = 800;
 
     InitWindow(screen_width, screen_height, "PROJECT: BLOCKS GAME");
+    InitAudioDevice();
     {
         Texture2D tex_logo = LoadTexture("code_gym/resources/raylib_logo.png");
         Texture2D tex_ball = LoadTexture("code_gym/resources/ball.png");
         Texture2D tex_paddle = LoadTexture("code_gym/resources/paddle.png");
         Texture2D tex_brick = LoadTexture("code_gym/resources/brick.png");
 
+        Music music = LoadMusicStream("code_gym/resources/blockshock.mod");
+    
+        PlayMusicStream(music);         // Start music streaming
+
         Font font = LoadFont("code_gym/resources/setback.png");
+
+        audio_system_t audio_system = (audio_system_t){
+            .fx_start = LoadSound("code_gym/resources/start.wav"),
+            .fx_bounce = LoadSound("code_gym/resources/bounce.wav"),
+            .fx_explode = LoadSound("code_gym/resources/explosion.wav")
+        };
 
         SetTargetFPS(60);
         brick_t buf[BRICKS_LINES][BRICKS_PER_LINE] = {0};
@@ -128,7 +145,7 @@ main(void)
 
         // Main loop
         while (!WindowShouldClose()) {
-            update_game_fn(&state, screen_height, screen_width);
+            update_game_fn(&state, &audio_system, screen_height, screen_width);
             draw_game_fn(
                 &state
                 , screen_height
@@ -143,7 +160,16 @@ main(void)
         UnloadTexture(tex_ball);
         UnloadTexture(tex_paddle);
         UnloadTexture(tex_brick);
+
+        UnloadFont(font);
+
+        UnloadMusicStream(music);
+
+        UnloadSound(audio_system.fx_start);
+        UnloadSound(audio_system.fx_bounce);
+        UnloadSound(audio_system.fx_explode);
     }
+    CloseAudioDevice();
     CloseWindow();  
     return 0;
 }
@@ -203,7 +229,7 @@ objects_init(
 
 
 void 
-update_game_fn(game_state_t *state, const int screen_height,  const int screen_width)
+update_game_fn(game_state_t *state, audio_system_t* audio_system, const int screen_height,  const int screen_width)
 {
     brick_t bricks[BRICKS_LINES][BRICKS_PER_LINE] = {0};
     memcpy(bricks, state->objects->bricks, sizeof(brick_t) * BRICKS_LINES * BRICKS_PER_LINE);
@@ -218,7 +244,7 @@ update_game_fn(game_state_t *state, const int screen_height,  const int screen_w
         }
         case TITLE: {
             state->frames_counter++;
-            if (IsKeyPressed(KEY_ENTER)) state->screen = GAMEPLAY;
+            if (IsKeyPressed(KEY_ENTER)) {state->screen = GAMEPLAY; PlaySound(audio_system->fx_start);}
             break;
         }
         case GAMEPLAY: {
@@ -249,6 +275,7 @@ update_game_fn(game_state_t *state, const int screen_height,  const int screen_w
                         state->objects->ball.speed.y *= -1;
                         state->objects->ball.speed.x = 
                             (state->objects->ball.position.x - (state->objects->player.position.x + state->objects->player.size.x/2))/state->objects->player.size.x*5.0f;
+                        PlaySound(audio_system->fx_bounce);
                     }
 
                     for (int i = 0; i < BRICKS_LINES; i++) {
@@ -257,6 +284,7 @@ update_game_fn(game_state_t *state, const int screen_height,  const int screen_w
                                 && CheckCollisionCircleRec(state->objects->ball.position, state->objects->ball.radius, bricks[i][j].bounds)){
                                 bricks[i][j].active = false;
                                 state->objects->ball.speed.y *= -1;
+                                PlaySound(audio_system->fx_explode);
                                 break;
                             }
                         }
