@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define PLAYER_LIFES             5
 #define BRICKS_LINES             5
@@ -98,6 +99,9 @@ objects_init(
 #endif
 );
 
+void
+objects_reset(game_state_t *state, const int screen_height, const int screen_width);
+
 
 int
 main(void)
@@ -189,10 +193,8 @@ objects_init(
 )
 {
     brick_t bricks[BRICKS_LINES][BRICKS_PER_LINE] = {0};
-    for (int j = 0; j < BRICKS_LINES; j++)
-    {
-        for (int i = 0; i < BRICKS_PER_LINE; i++)
-        {
+    for (int j = 0; j < BRICKS_LINES; j++){
+        for (int i = 0; i < BRICKS_PER_LINE; i++){
             bricks[j][i].size = (Vector2){ screen_width/BRICKS_PER_LINE, 20 };
             bricks[j][i].position = (Vector2){ i*bricks[j][i].size.x, j*bricks[j][i].size.y + BRICKS_POSITION_Y };
             bricks[j][i].bounds = (Rectangle){ bricks[j][i].position.x, bricks[j][i].position.y, bricks[j][i].size.x, bricks[j][i].size.y };
@@ -229,11 +231,34 @@ objects_init(
 }
 
 
-void 
-update_game_fn(game_state_t *state, audio_system_t* audio_system, const int screen_height,  const int screen_width)
+void
+objects_reset(game_state_t *state, const int screen_height, const int screen_width)
 {
     brick_t bricks[BRICKS_LINES][BRICKS_PER_LINE] = {0};
     memcpy(bricks, state->objects->bricks, sizeof(brick_t) * BRICKS_LINES * BRICKS_PER_LINE);
+    for (int i = 0; i < BRICKS_LINES; i++) {
+        for (int j = 0; j < BRICKS_PER_LINE; j++) {
+            bricks[i][j].active = 1;
+        }
+    }
+    state->objects->player.position = (Vector2){ screen_width/2, screen_height*7/8 };
+    state->objects->player.speed = (Vector2){ 8.0f, 0.0f };
+    state->objects->player.size = (Vector2){ 100, 24 };
+    state->objects->player.lifes = PLAYER_LIFES;
+
+    state->objects->ball.radius = 10.0f;
+    state->objects->ball.active = false;
+    state->objects->ball.position = (Vector2){ 
+        state->objects->player.position.x + state->objects->player.size.x/2, 
+        state->objects->player.position.y - state->objects->ball.radius*2 };
+    state->objects->ball.speed = (Vector2){ 4.0f, 4.0f };
+    memcpy(state->objects->bricks, bricks, sizeof(brick_t) * BRICKS_LINES * BRICKS_PER_LINE);
+}
+
+
+void 
+update_game_fn(game_state_t *state, audio_system_t* audio_system, const int screen_height,  const int screen_width)
+{
     switch (state->screen) {
         case LOGO: {
             state->frames_counter++;
@@ -249,68 +274,83 @@ update_game_fn(game_state_t *state, audio_system_t* audio_system, const int scre
             break;
         }
         case GAMEPLAY: {
+            brick_t (*bricks)[BRICKS_PER_LINE] = (brick_t (*)[BRICKS_PER_LINE])state->objects->bricks;
             if (IsKeyPressed('P')) state->game_paused = !state->game_paused;
             if (!state->game_paused) {
-                if (IsKeyDown(KEY_LEFT)) state->objects->player.position.x -= state->objects->player.speed.x;
-                if (IsKeyDown(KEY_RIGHT)) state->objects->player.position.x += state->objects->player.speed.x;
-
-                // Lock to window frame
-                if ((state->objects->player.position.x) <= 0) state->objects->player.position.x = 0;
-                if ((state->objects->player.position.x + state->objects->player.size.x) >= screen_width) 
-                    state->objects->player.position.x = screen_width - state->objects->player.size.x;
-
-                state->objects->player.bounds = (Rectangle){ 
-                    state->objects->player.position.x, state->objects->player.position.y, 
-                    state->objects->player.size.x, state->objects->player.size.y };
-                
-                if (state->objects->ball.active){
-                    state->objects->ball.position.x += state->objects->ball.speed.x;
-                    state->objects->ball.position.y += state->objects->ball.speed.y;
-
-                    if (((state->objects->ball.position.x + state->objects->ball.radius) >= screen_width) 
-                        || ((state->objects->ball.position.x - state->objects->ball.radius) <= 0)) state->objects->ball.speed.x *= -1;
-                    
-                    if ((state->objects->ball.position.y - state->objects->ball.radius) <= 0) state->objects->ball.speed.y *= -1;
-
-                    if (CheckCollisionCircleRec(state->objects->ball.position, state->objects->ball.radius, state->objects->player.bounds)){
-                        state->objects->ball.speed.y *= -1;
-                        state->objects->ball.speed.x = 
-                            (state->objects->ball.position.x - (state->objects->player.position.x + state->objects->player.size.x/2))/state->objects->player.size.x*5.0f;
-                        PlaySound(audio_system->fx_bounce);
+                size_t count_blocks = 0;
+                for (int i = 0; i < BRICKS_LINES; i++) {
+                    for (int j = 0; j < BRICKS_PER_LINE; j++) {
+                        if (!bricks[i][j].active) count_blocks++;
                     }
+                }
+                if (BRICKS_LINES * BRICKS_PER_LINE > count_blocks){
+                    if (IsKeyDown(KEY_LEFT)) state->objects->player.position.x -= state->objects->player.speed.x;
+                    if (IsKeyDown(KEY_RIGHT)) state->objects->player.position.x += state->objects->player.speed.x;
 
-                    for (int i = 0; i < BRICKS_LINES; i++) {
-                        for (int j = 0; j < BRICKS_PER_LINE; j++) {
-                            if (bricks[i][j].active 
-                                && CheckCollisionCircleRec(state->objects->ball.position, state->objects->ball.radius, bricks[i][j].bounds)){
-                                bricks[i][j].active = false;
-                                state->objects->ball.speed.y *= -1;
-                                PlaySound(audio_system->fx_explode);
-                                break;
+                    // Lock to window frame
+                    if ((state->objects->player.position.x) <= 0) state->objects->player.position.x = 0;
+                    if ((state->objects->player.position.x + state->objects->player.size.x) >= screen_width) 
+                        state->objects->player.position.x = screen_width - state->objects->player.size.x;
+
+                    state->objects->player.bounds = (Rectangle){ 
+                        state->objects->player.position.x, state->objects->player.position.y, 
+                        state->objects->player.size.x, state->objects->player.size.y };
+                    
+                    if (state->objects->ball.active){
+                        state->objects->ball.position.x += state->objects->ball.speed.x;
+                        state->objects->ball.position.y += state->objects->ball.speed.y;
+
+                        if (((state->objects->ball.position.x + state->objects->ball.radius) >= screen_width) 
+                            || ((state->objects->ball.position.x - state->objects->ball.radius) <= 0)) state->objects->ball.speed.x *= -1;
+                        
+                        if ((state->objects->ball.position.y - state->objects->ball.radius) <= 0) state->objects->ball.speed.y *= -1;
+
+                        if (CheckCollisionCircleRec(state->objects->ball.position, state->objects->ball.radius, state->objects->player.bounds)){
+                            state->objects->ball.speed.y *= -1;
+                            state->objects->ball.speed.x = 
+                                (state->objects->ball.position.x - (state->objects->player.position.x + state->objects->player.size.x/2))/state->objects->player.size.x*5.0f;
+                            PlaySound(audio_system->fx_bounce);
+                        }
+
+                        for (int i = 0; i < BRICKS_LINES; i++) {
+                            for (int j = 0; j < BRICKS_PER_LINE; j++) {
+                                if (bricks[i][j].active 
+                                    && CheckCollisionCircleRec(state->objects->ball.position, state->objects->ball.radius, bricks[i][j].bounds)){
+                                    bricks[i][j].active = false;
+                                    state->objects->ball.speed.y *= -1;
+                                    PlaySound(audio_system->fx_explode);
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    if ((state->objects->ball.position.y + state->objects->ball.radius) >= screen_height){
+                        if ((state->objects->ball.position.y + state->objects->ball.radius) >= screen_height){
+                            state->objects->ball.position.x = state->objects->player.position.x + state->objects->player.size.x/2;
+                            state->objects->ball.position.y = state->objects->player.position.y - state->objects->ball.radius - 1.0f;
+                            state->objects->ball.speed = (Vector2){ 0, 0 };
+                            state->objects->ball.active = false;
+
+                            state->objects->player.lifes--;
+                        }
+                            
+                        if (state->objects->player.lifes < 0){
+                            state->screen = ENDING;
+                            state->objects->player.lifes = 5;
+                            state->frames_counter = 0;
+                        }
+                    } else {
                         state->objects->ball.position.x = state->objects->player.position.x + state->objects->player.size.x/2;
-                        state->objects->ball.position.y = state->objects->player.position.y - state->objects->ball.radius - 1.0f;
-                        state->objects->ball.speed = (Vector2){ 0, 0 };
-                        state->objects->ball.active = false;
-
-                        state->objects->player.lifes--;
-                    }
-                        
-                    if (state->objects->player.lifes < 0){
-                        state->screen = ENDING;
-                        state->objects->player.lifes = 5;
-                        state->frames_counter = 0;
+                        if (IsKeyPressed(KEY_SPACE)){
+                            // Activate ball logic
+                            state->objects->ball.active = true;
+                            state->objects->ball.speed = (Vector2){ 0, -5.0f };
+                        }
                     }
                 } else {
-                    state->objects->ball.position.x = state->objects->player.position.x + state->objects->player.size.x/2;
-                    if (IsKeyPressed(KEY_SPACE)){
-                        // Activate ball logic
-                        state->objects->ball.active = true;
-                        state->objects->ball.speed = (Vector2){ 0, -5.0f };
+                    state->frames_counter++;
+                    if (state->frames_counter > 180) {
+                        state->screen = ENDING;    // Change to TITLE screen after 3 seconds
+                        state->frames_counter = 0;
                     }
                 }
             }
@@ -319,11 +359,11 @@ update_game_fn(game_state_t *state, audio_system_t* audio_system, const int scre
         }
         case ENDING: {
             state->frames_counter++;
+            objects_reset(state, screen_height, screen_width);
             if (IsKeyPressed(KEY_ENTER)) state->screen = TITLE;
             break;
         }
     }
-    memcpy(state->objects->bricks, bricks, sizeof(brick_t) * BRICKS_LINES * BRICKS_PER_LINE);
 }
 
 
@@ -387,6 +427,14 @@ draw_game_fn(
 #endif
                 for (int i = 0; i < state->objects->player.lifes; i++) DrawRectangle(20 + 40*i, screen_height - 30, 35, 10, LIGHTGRAY);
                 if (state->game_paused) DrawText("GAME PAUSED", screen_width/2 - MeasureText("GAME PAUSED", 40)/2, screen_height/2 + 60, 40, GRAY);
+                size_t count_blocks = 0;
+                for (int i = 0; i < BRICKS_LINES; i++) {
+                    for (int j = 0; j < BRICKS_PER_LINE; j++) {
+                        if (!bricks[i][j].active) count_blocks++;
+                    }
+                }
+                if (!(BRICKS_LINES * BRICKS_PER_LINE > count_blocks)) 
+                    DrawText("YOU WIN", screen_width/2 - MeasureText("YOU WIN", 40)/2, screen_height/2 + 60, 40, GRAY);
                 break;
             }
             case ENDING: {
