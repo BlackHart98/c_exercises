@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <stdlib.h>
+#include <limits.h>
 
 #define MAX_FRAME_SPEED     15
 #define MIN_FRAME_SPEED      1
@@ -10,7 +11,6 @@ typedef struct player_t {
     Rectangle frame_rec;
     Texture2D *texture;
     int current_frame;
-    int frames_counter;
     int frames_speed;
 } player_t;
 
@@ -21,6 +21,7 @@ typedef struct objects_t {
 
 
 typedef struct game_state_t {
+    int frames_counter;
     objects_t *objects;
 } game_state_t;
 
@@ -45,13 +46,13 @@ main(void)
 {
     const int screen_width = 800;
     const int screen_height = 450;
-
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screen_width, screen_height, "raylib [textures] example - sprite animation");
     {
         Texture2D scarfy = LoadTexture("code_gym/resources/scarfy.png");
         objects_t game_objects = objects_init(screen_height, screen_width, &scarfy);
 
-        game_state_t state = (game_state_t){ .objects = &game_objects };
+        game_state_t state = (game_state_t){ .frames_counter = 0, .objects = &game_objects };
 
         SetTargetFPS(60); 
         while (!WindowShouldClose()) {
@@ -76,7 +77,6 @@ objects_init(
         .position = (Vector2){ 350.0f, 280.0f },
         .frame_rec = { 0.0f, 0.0f, (float)tex_player->width/6, (float)tex_player->height },
         .texture = tex_player,
-        .frames_counter = 0,
         .frames_speed = 8,
         .current_frame = 0,
     };
@@ -89,9 +89,9 @@ objects_init(
 void 
 update_game_fn(game_state_t *state, const int screen_height,  const int screen_width)
 {
-    state->objects->player.frames_counter++;
-    if (state->objects->player.frames_counter >= (60/state->objects->player.frames_speed)){
-        state->objects->player.frames_counter = 0;
+    state->frames_counter++;
+    if (state->frames_counter >= (60/state->objects->player.frames_speed)){
+        state->frames_counter = 0;
         state->objects->player.current_frame++;
 
         if (state->objects->player.current_frame > 5) state->objects->player.current_frame = 0;

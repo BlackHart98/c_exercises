@@ -27,11 +27,13 @@ main(int argc, char *argv[])
         {.src_file = "code_gym/first_game_intro.c", .build_file = BUILD_FOLDER"first_game_intro"},
         {.src_file = "code_gym/creating_blocks.c", .build_file = BUILD_FOLDER"creating_blocks"},
         {.src_file = "code_gym/sprite_anim.c", .build_file = BUILD_FOLDER"sprite_anim"},
+        {.src_file = "code_gym/ui_example.c", .build_file = BUILD_FOLDER"ui_example"},
     };
     for (int i = 0; i < NOB_ARRAY_LEN(objects); i++){
         nob_cc(&cmd);
         nob_cc_flags(&cmd);
         nob_cc_add_include(&cmd, "code_gym/externals/raylib6/include");
+        nob_cc_add_include(&cmd, "code_gym/externals/raygui/src");
 
 #if defined(__APPLE__) || defined(__MACH__)
         nob_cc_add_framework(&cmd, "CoreVideo");
