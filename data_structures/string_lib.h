@@ -39,6 +39,9 @@ string_lib_append_char(arena_allocator_t *allocator, string_t *dst, const char s
 STRING_LIB_LOCAL int 
 string_lib_to_cstring(arena_allocator_t *allocator, string_t *string, char **cstring);
 
+STRING_LIB_LOCAL int
+string_lib_append_slice(arena_allocator_t *allocator, string_t *dst, const slice_t str_slice);
+
 
 #ifdef STRING_LIB_IMPLEMENTATION
 
@@ -123,6 +126,23 @@ string_lib_append_strlit(arena_allocator_t *allocator, string_t *dst, const char
     dst->ptr = new_slice.ptr;
     return 0;
 
+}
+
+
+int
+string_lib_append_slice(arena_allocator_t *allocator, string_t *dst, const slice_t str_slice){
+    if (NULL == str_slice.len_in_bytes) return 0;
+    size_t expected_len = dst->len + str_slice.len_in_bytes;
+    slice_t new_slice = (slice_t){.len_in_bytes = dst->capacity, .ptr = dst->ptr};
+    if (0 == new_slice.len_in_bytes) return 1;
+    if (dst->capacity < expected_len){
+        dst->capacity = expected_len << 1;
+        new_slice = arena_allocator_resize(allocator, char, new_slice, dst->capacity);
+    }
+    memmove(&(new_slice.ptr[dst->len]), str_slice.ptr, str_slice.len_in_bytes);
+    dst->len = expected_len;
+    dst->ptr = new_slice.ptr;
+    return 0;
 }
 
 

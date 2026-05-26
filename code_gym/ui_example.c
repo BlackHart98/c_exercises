@@ -29,6 +29,8 @@ main(void)
         // Base64 encoded data
         char *base64_text = NULL;
         int base64_text_size = 0;
+
+        char *output_buffer = text;
         SetTargetFPS(60);
         while (!WindowShouldClose()) {
             if (btn_compute_hashes) {
@@ -59,9 +61,8 @@ main(void)
                 GuiSetStyle(DEFAULT, TEXT_SPACING, 1);
                 GuiSetStyle(DEFAULT, TEXT_SIZE, 10);
 
-                // GuiSetStyle(TEXTBOX, TEXT_READONLY, 1);
+                GuiSetStyle(TEXTBOX, TEXT_READONLY, 1);
                 GuiLabel((Rectangle){ 40, 200, 120, 32 }, "CRC32 [32 bit]:");
-                char *output_buffer = text;
                 get_data_as_hex_text_fn(&hash_CRC32, 1, output_buffer);
                 GuiTextBox((Rectangle){ 40 + 120, 200, 720 - 120, 32 }, output_buffer, 120, false);
                 GuiLabel((Rectangle){ 40, 200 + 36, 120, 32 }, "MD5 [128 bit]:");
