@@ -74,6 +74,13 @@ main(void)
                 GuiLabel((Rectangle){ 40, 200 + 36*3, 120, 32 }, "SHA256 [256 bit]:");
                 get_data_as_hex_text_fn(hash_SHA256, 8, output_buffer);
                 GuiTextBox((Rectangle){ 40 + 120, 200 + 36*3, 720 - 120, 32 }, output_buffer, 120, false);
+
+                GuiSetState(STATE_FOCUSED);
+                GuiLabel((Rectangle){ 40, 200 + 36*5 - 30, 320, 32 }, "BONUS - BAS64 ENCODED STRING:");
+                GuiSetState(STATE_NORMAL);
+                GuiLabel((Rectangle){ 40, 200 + 36*5, 120, 32 }, "BASE64 ENCODING:");
+                GuiTextBox((Rectangle){ 40 + 120, 200 + 36*5, 720 - 120, 32 }, base64_text, 120, false);
+                GuiSetStyle(TEXTBOX, TEXT_READONLY, 0);
             }
             EndDrawing();
         }

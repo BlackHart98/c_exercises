@@ -47,7 +47,7 @@ hash_map_init_capacity(arena_allocator_t *allocator, size_t init_capacity)
 }
 
 
-// The put function is not correct, it neither does linearing probing nor chaining
+// The put function is not correct, it neither does linear probing nor chaining
 int 
 hash_map_put(arena_allocator_t *allocator, hash_map_t *hs, key_value_t key_value)
 {
