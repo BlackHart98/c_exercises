@@ -12,7 +12,6 @@ main(int argc, char *argv[])
     NOB_GO_REBUILD_URSELF(argc, argv);
 
     Nob_Cmd cmd = {0};
-    Nob_String_View path_sv = nob_sv_from_cstr(argv[2]);
 
     struct{
         const char *src_file;
