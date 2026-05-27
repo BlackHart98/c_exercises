@@ -2,6 +2,7 @@
 #define STRING_LIB_H
 
 #include <assert.h>
+#include <string.h>
 
 
 #include "../memory_management/why_so_arena.c"
@@ -41,6 +42,9 @@ string_lib_to_cstring(arena_allocator_t *allocator, string_t *string, char **cst
 
 STRING_LIB_LOCAL int
 string_lib_append_slice(arena_allocator_t *allocator, string_t *dst, const slice_t str_slice);
+
+STRING_LIB_LOCAL int
+string_lib_string_equal(string_t *lhs, string_t *rhs);
 
 
 #ifdef STRING_LIB_IMPLEMENTATION
@@ -184,6 +188,14 @@ string_lib_to_cstring(arena_allocator_t *allocator, string_t *string, char **cst
     memmove(cstring_slice.ptr, string->ptr, string->len);
     *cstring = (char *)cstring_slice.ptr;
     return 0;
+}
+
+int
+string_lib_string_equal(string_t *lhs, string_t *rhs)
+{
+    slice_t l = string_lib_to_slice(lhs);
+    slice_t r = string_lib_to_slice(rhs);
+    return slice_equal(&l, &r);
 }
 
 #endif

@@ -86,6 +86,9 @@ make_slice(void *object, size_t len_in_bytes);
 ARENA_LOCAL const_slice_t
 make_const_slice(const char *object);
 
+ARENA_LOCAL int
+slice_equal(const slice_t *lhs, const slice_t *rhs);
+
 ARENA_LOCAL slice_t 
 interface_alloc(size_t len, size_t size_);
 
@@ -370,6 +373,15 @@ make_const_slice(const char *object)
         .buf = object,
         .len_in_bytes = len_in_bytes,
     };
+}
+
+
+int
+slice_equal(const slice_t *lhs, const slice_t *rhs)
+{
+    if (lhs->len_in_bytes != rhs->len_in_bytes) return 0;
+    if (0 == memcmp(lhs->ptr, rhs->ptr, lhs->len_in_bytes)) return 1;
+    return 0;
 }
 #endif
 
