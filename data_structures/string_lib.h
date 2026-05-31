@@ -47,6 +47,41 @@ STRING_LIB_LOCAL int
 string_lib_string_equal(string_t *lhs, string_t *rhs);
 
 
+typedef struct string_fragment_t {
+    slice_t data;
+    struct string_fragment_t *next;
+} string_fragment_t;
+
+
+typedef struct string_builder_t {
+    arena_allocator_t *allocator;
+    string_fragment_t *head;
+    string_fragment_t *tail;
+    size_t count;
+} string_builder_t;
+
+
+STRING_LIB_LOCAL string_builder_t 
+string_lib_sb_init(arena_allocator_t *allocator);
+
+
+STRING_LIB_LOCAL int 
+string_lib_sb_append_format(string_builder_t *sb, const char *format, ...);
+
+
+STRING_LIB_LOCAL int 
+string_lib_sb_append_slice(string_builder_t *sb, const slice_t *slice);
+
+
+STRING_LIB_LOCAL int 
+string_lib_sb_append(string_builder_t *sb, const char *str);
+
+
+STRING_LIB_LOCAL string_t 
+string_lib_sb_get_string(string_builder_t *sb, arena_allocator_t *allocator);
+
+
+
 #ifdef STRING_LIB_IMPLEMENTATION
 
 string_t 
@@ -197,6 +232,55 @@ string_lib_string_equal(string_t *lhs, string_t *rhs)
     slice_t r = string_lib_to_slice(rhs);
     return slice_equal(&l, &r);
 }
+
+
+string_builder_t 
+string_lib_sb_init(arena_allocator_t *allocator)
+{
+    return (string_builder_t){
+        .allocator = allocator,
+        .count = 0,
+        .head = NULL,
+        .tail = NULL,
+    };
+}
+
+
+int 
+string_lib_sb_append(string_builder_t *sb, const char *str)
+{
+    string_fragment_t *new_node = (string_fragment_t *) arena_allocator_alloc_item(sb->allocator, string_fragment_t);
+    string_t str = string_lib_init_with_strlit(sb->allocator, str);
+    new_node->data = string_lib_to_slice(&str);
+    new_node->next = NULL;
+    string_fragment_t *current_node = sb->head;
+    while(current_node->next->next != NULL){
+        current_node = current_node->next;
+    }
+    current_node->next->next = new_node;
+    return 0;
+}
+
+
+string_t 
+string_lib_sb_get_string(string_builder_t *sb, arena_allocator_t *allocator)
+{
+    string_fragment_t *current_node = sb->head;
+    if (NULL != current_node){
+        string_t str = string_lib_init_slice(allocator, current_node->data);
+        current_node = current_node->next;
+        while (NULL != current_node) {
+            int ret = string_lib_append_slice(allocator, &str, current_node->data);
+            if (0 != ret) return (string_t){0};
+            current_node = current_node->next;
+        }
+        return str;
+    }
+    return (string_t){0};
+}
+
+
+
 
 #endif
 

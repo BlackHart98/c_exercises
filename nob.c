@@ -26,6 +26,7 @@ main(int argc, char *argv[])
         {.src_file = "code_gym/first_game_intro.c", .build_file = BUILD_FOLDER"first_game_intro"},
         {.src_file = "code_gym/creating_blocks.c", .build_file = BUILD_FOLDER"creating_blocks"},
         {.src_file = "code_gym/sprite_anim.c", .build_file = BUILD_FOLDER"sprite_anim"},
+        {.src_file = "code_gym/animation.c", .build_file = BUILD_FOLDER"animation"},
         {.src_file = "code_gym/ui_example.c", .build_file = BUILD_FOLDER"ui_example"},
     };
     for (int i = 0; i < NOB_ARRAY_LEN(objects); i++){

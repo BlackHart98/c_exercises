@@ -39,6 +39,10 @@ ARRAY_LIST_LOCAL int
 array_list_insert_item_fn(array_list_t *dst, char *item, size_t pos);
 
 
+ARRAY_LIST_LOCAL int 
+array_list_reset_fn(array_list_t *array_list);
+
+
 #ifdef ARRAY_LIST_IMPLEMENTATION
 
 array_list_t 
@@ -117,6 +121,12 @@ array_list_append_slice_fn(arena_allocator_t *allocator, array_list_t *dst, cons
     dst->ptr = new_slice.ptr;
     return 0;
 
+}
+
+int 
+array_list_reset_fn(array_list_t *array_list)
+{
+    array_list->len = 0;
 }
 
 

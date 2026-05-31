@@ -3,6 +3,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if defined(_MSVC_VER)
+    #define u_alignof(x) __alignof(x)
+#elif defined(__GNUC__) || defined(__GNUG__) || defined(__clang__)
+    #define u_alignof(x) __alignof__(x)
+#endif
+
 typedef struct oops_t{
     uint16_t another_i;
 } oops_t;
@@ -79,15 +85,16 @@ typedef struct sg_buffer_usage_v2 {
 } sg_buffer_usage_v2;
 
 int main(int argc, char *argv[]){
-    printf("Here is the size of nested struct: %lu\n", sizeof(struct nested));
-    printf("Here is the size of nested_inv struct: %lu\n", sizeof(struct nested_inv));
-    printf("Here is the size of SomeStruct: %lu\n", sizeof(struct SomeStruct));
-    printf("Here is the size of SomeStruct2: %lu\n", sizeof(struct SomeStruct2));
-    printf("Here is the size of SomeStruct3: %lu\n", sizeof(struct SomeStruct3));
-    printf("Here is the size of SomeStruct4: %lu\n", sizeof(struct SomeStruct4));
-    printf("Here is the size of SomeStruct5: %lu\n", sizeof(struct SomeStruct5));
-    printf("Here is the size of sg_buffer_usage: %lu\n", sizeof(sg_buffer_usage));
-    printf("Here is the size of sg_buffer_usage_v2: %lu\n", sizeof(sg_buffer_usage_v2));
+    printf("Here is the size of nested struct: %zu\n", sizeof(struct nested));
+    printf("Here is the size of nested_inv struct: %zu\n", sizeof(struct nested_inv));
+    printf("Here is the size of SomeStruct: %zu\n", sizeof(struct SomeStruct));
+    printf("Here is the size of SomeStruct2: %zu\n", sizeof(struct SomeStruct2));
+    printf("Here is the size of SomeStruct3: %zu\n", sizeof(struct SomeStruct3));
+    printf("Here is the size of SomeStruct4: %zu\n", sizeof(struct SomeStruct4));
+    printf("Here is the size of SomeStruct5: %zu\n", sizeof(struct SomeStruct5));
+    printf("Here is the size of sg_buffer_usage: %zu\n", sizeof(sg_buffer_usage));
+    printf("Here is the size of sg_buffer_usage_v2: %zu\n", sizeof(sg_buffer_usage_v2));
+    printf("Here is the alignment of sg_buffer_usage: %zu\n", u_alignof(sg_buffer_usage));
     sg_buffer_usage_v2 sample;
     sample.usage_type = SG_INDEX_BUFFER;
     return EXIT_SUCCESS;
