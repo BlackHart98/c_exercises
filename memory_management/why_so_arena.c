@@ -35,7 +35,7 @@
 #define arena_allocator_alloc_item(allocator, T)                    arena_allocator_alloc_item_aligned(allocator, sizeof(T), DEFAULT_ALIGNMENT);
 #define arena_allocator_resize(allocator, T, old_slice, new_len)    arena_allocator_resize_aligned(allocator, old_slice, new_len, sizeof(T), DEFAULT_ALIGNMENT)
 #define arena_allocator_init_page_default(allocator, capacity)      arena_allocator_init(allocator, capacity, DEFAULT_PAGE_SIZE)
-
+#define arena_allocator_dup(allocator, input_slice)                 arena_allocator_dup_aligned(allocator, input_slice, DEFAULT_ALIGNMENT)
 
 
 // Slice yippy!
@@ -83,8 +83,11 @@ typedef struct arena_allocator_t {
 ARENA_LOCAL slice_t
 make_slice(void *object, size_t len_in_bytes);
 
+ARENA_LOCAL slice_t
+make_const_slice(char *object);
+
 ARENA_LOCAL const_slice_t
-make_const_slice(const char *object);
+make_const_slice_v1(const char *object);
 
 ARENA_LOCAL int
 slice_equal(const slice_t *lhs, const slice_t *rhs);
@@ -153,6 +156,9 @@ arena_allocator_deinit(arena_allocator_t *arena_allocator);
 
 ARENA_LOCAL slice_t
 arena_allocator_resize_aligned(arena_allocator_t *arena_allocator, slice_t allocated_slice, size_t new_len, size_t new_size, size_t alignment_);
+
+ARENA_LOCAL slice_t
+arena_allocator_dup_aligned(arena_allocator_t *arena_allocator, slice_t input_slice, size_t alignment_);
 
 
 
@@ -349,6 +355,16 @@ arena_allocator_resize_aligned(arena_allocator_t *arena_allocator, slice_t alloc
 }
 
 
+slice_t
+arena_allocator_dup_aligned(arena_allocator_t *arena_allocator, slice_t input_slice, size_t alignment_)
+{
+    assert((0 != input_slice.len_in_bytes)&&"Cannot duplicate empty slice");
+    slice_t new_slice = arena_allocator_alloc_aligned(arena_allocator, input_slice.len_in_bytes, 1, alignment_);
+    if (0 == new_slice.len_in_bytes) return (slice_t){0};
+    memmove(new_slice.ptr, input_slice.ptr, input_slice.len_in_bytes);
+    return new_slice;
+}
+
 
 slice_t
 make_slice(void *object, size_t len_in_bytes)
@@ -362,7 +378,7 @@ make_slice(void *object, size_t len_in_bytes)
 
 
 const_slice_t
-make_const_slice(const char *object)
+make_const_slice_v1(const char *object)
 {
     size_t len_in_bytes = 0;
     size_t i = 0;
@@ -371,6 +387,21 @@ make_const_slice(const char *object)
     len_in_bytes = i * sizeof(char);
     return (const_slice_t){
         .buf = object,
+        .len_in_bytes = len_in_bytes,
+    };
+}
+
+
+slice_t
+make_const_slice(char *object)
+{
+    size_t len_in_bytes = 0;
+    size_t i = 0;
+    if (NULL == object) {return (slice_t){0};}
+    while ('\0' != object[i]){i++;}
+    len_in_bytes = i * sizeof(char);
+    return (slice_t){
+        .ptr = object,
         .len_in_bytes = len_in_bytes,
     };
 }

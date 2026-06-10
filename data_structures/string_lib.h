@@ -170,7 +170,7 @@ string_lib_append_strlit(arena_allocator_t *allocator, string_t *dst, const char
 
 int
 string_lib_append_slice(arena_allocator_t *allocator, string_t *dst, const slice_t str_slice){
-    if (NULL == str_slice.len_in_bytes) return 0;
+    if (0 == str_slice.len_in_bytes) return 0;
     size_t expected_len = dst->len + str_slice.len_in_bytes;
     slice_t new_slice = (slice_t){.len_in_bytes = dst->capacity, .ptr = dst->ptr};
     if (0 == new_slice.len_in_bytes) return 1;
@@ -225,6 +225,20 @@ string_lib_to_cstring(arena_allocator_t *allocator, string_t *string, char **cst
     return 0;
 }
 
+
+int 
+string_lib_slice_to_cstring(arena_allocator_t *allocator, slice_t src_slice, char **cstring)
+{
+    slice_t cstring_slice = arena_allocator_alloc(allocator, char, src_slice.len_in_bytes + 1);
+    if (0 == cstring_slice.len_in_bytes) return 1;
+    assert((0 != cstring_slice.len_in_bytes)&&"Unable to allocate slice");
+    memset(cstring_slice.ptr, 0, cstring_slice.len_in_bytes);
+    memmove(cstring_slice.ptr, src_slice.ptr, src_slice.len_in_bytes);
+    *cstring = (char *)cstring_slice.ptr;
+    return 0;
+}
+
+
 int
 string_lib_string_equal(string_t *lhs, string_t *rhs)
 {
@@ -247,10 +261,10 @@ string_lib_sb_init(arena_allocator_t *allocator)
 
 
 int 
-string_lib_sb_append(string_builder_t *sb, const char *str)
+string_lib_sb_append(string_builder_t *sb, const char *strlit)
 {
     string_fragment_t *new_node = (string_fragment_t *) arena_allocator_alloc_item(sb->allocator, string_fragment_t);
-    string_t str = string_lib_init_with_strlit(sb->allocator, str);
+    string_t str = string_lib_init_with_strlit(sb->allocator, strlit);
     new_node->data = string_lib_to_slice(&str);
     new_node->next = NULL;
     string_fragment_t *current_node = sb->head;

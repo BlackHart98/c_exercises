@@ -118,6 +118,9 @@ main(int argc, char *argv[])
         };
         slice_t position_slice = make_slice(items, sizeof(items));
         int ret = position_soa_append_slice_fn(&gpa, &pos_list, position_slice);
+
+        ret = position_soa_append_item_fn(
+            &gpa, &pos_list, (position_t){.x_pos = 7, .y_pos = 5.39, .z_pos = 3});
         // x positions
         for (int i = 0; i < pos_list.len; i++){
             printf("pos_list: x_pos[%d]: %.2f\n", i, pos_list.x_pos[i]);
