@@ -5,7 +5,7 @@ int power_integer_max(int n){
     k = 1; max = 1; count = 2;
     while (k < n){
         int temp = count;
-        while (temp > 1 && (temp % 2) == 0){
+        while (temp > 1 && (temp & 1)){
             temp /= 2;
         }
         while (temp > 1 && (temp % 3) == 0){
@@ -17,11 +17,10 @@ int power_integer_max(int n){
         if (temp == 1){
             max = count; k++;
         }
-        count ++;
+        count++;
     }
     return max;
 }
-
 
 int main(int argc, char **argv){
     printf("Solution is %d\n", power_integer_max(6));

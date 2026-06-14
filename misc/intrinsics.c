@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-inline int is_odd(int some_number){
-    return (some_number & 0x01);
+static inline int is_odd(int some_number){
+    return some_number & 1;
 }
 
 

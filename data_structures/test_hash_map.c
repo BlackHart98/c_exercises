@@ -12,7 +12,7 @@ main(int argc, char *argv[])
 {
     arena_allocator_t gpa = arena_allocator_init_page_default(c_allocator, KB(1));
     
-    hash_map_t some_map = hash_map_init(&gpa); // float_list: map[char[]]int
+    hash_map_t some_map = hash_map_init(&gpa, NULL); // some_map: map[char[]]int
     int ret = HM_SUCCESS;
     if (NULL == some_map.data.ptr) goto cleanup;
 
@@ -32,6 +32,10 @@ main(int argc, char *argv[])
     ret = string_lib_slice_to_cstring(&gpa, make_const_slice("test_key_1"), &cstring);
     if (0 != ret) goto cleanup;
     printf("Here is the result: %d, %s\n", result, cstring);
+
+    if(!hash_map_contains(&some_map, make_const_slice("who_knows"))){
+        printf("Key not found in table\n");
+    }
     
     cleanup:
         arena_allocator_deinit(&gpa);

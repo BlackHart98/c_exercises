@@ -25,6 +25,7 @@
 
 // Allocator utils
 #define KB(byte)                                        (byte * 1024UL)
+#define MB(byte)                                        (byte * 1024UL * 1024UL)
 #define DEFAULT_ALIGNMENT                               (2 * sizeof(void *))
 #define DEFAULT_PAGE_SIZE                               KB(2)
 // #define MAX_ALIGNMENT                                   _Alignof(max_align_t)
@@ -341,9 +342,10 @@ arena_allocator_resize_aligned(arena_allocator_t *arena_allocator, slice_t alloc
             arena_lower_bound = (uintptr_t)current_node->arena.base_address;
             arena_upper_bound = arena_lower_bound + current_node->arena.capacity;
             if (arena_lower_bound <= (uintptr_t) allocated_slice.ptr 
-                || arena_upper_bound > (uintptr_t) allocated_slice.ptr){
+                && arena_upper_bound > (uintptr_t) allocated_slice.ptr){
                 break;
             }
+            current_node = current_node->next;
         }
         assert((NULL != current_node)&&"Slice does not point to any arena, ensure you are using the arena the was use to create the slice");
         slice_t new_slice = arena_allocator_alloc_aligned(arena_allocator, new_len, size_, alignment_);
