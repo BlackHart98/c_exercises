@@ -54,9 +54,15 @@ string_lib_string_equal(string_t *lhs, string_t *rhs);
 STRING_LIB_LOCAL int 
 string_lib_slice_to_cstring(arena_allocator_t *allocator, slice_t src_slice, char **cstring);
 
+STRING_LIB_LOCAL slice_t 
+string_lib_cstring_in_slice(string_t *str, slice_t *cstring_slice);
+
 
 STRING_LIB_LOCAL array_list_t
 string_lib_split_string(arena_allocator_t *allocator, string_t *str, slice_t pattern_slice);
+
+STRING_LIB_LOCAL string_t
+string_lib_shrink_len(string_t *str, size_t shrink_len);
 
 typedef struct string_fragment_t {
     slice_t data;
@@ -116,7 +122,7 @@ string_lib_init_slice(arena_allocator_t *allocator, slice_t src_slice)
     return (string_t){
         .capacity = src_slice.len_in_bytes << 1,
         .len = src_slice.len_in_bytes,
-        .ptr = (char *)src_slice.ptr
+        .ptr = (char *)string_slice.ptr
     };
 }
 
@@ -180,7 +186,8 @@ string_lib_append_strlit(arena_allocator_t *allocator, string_t *dst, const char
 
 
 int
-string_lib_append_slice(arena_allocator_t *allocator, string_t *dst, const slice_t str_slice){
+string_lib_append_slice(arena_allocator_t *allocator, string_t *dst, const slice_t str_slice)
+{
     if (NULL == str_slice.ptr) return 0;
     size_t expected_len = dst->len + str_slice.len_in_bytes;
     slice_t new_slice = (slice_t){.len_in_bytes = dst->capacity, .ptr = dst->ptr};
@@ -278,7 +285,7 @@ string_lib_split_string(arena_allocator_t *allocator, string_t *str, slice_t pat
         }
     }
     if (i < str->len){
-        slice_t item = string_lib_to_slice_chunk(str, offset, (i - offset));
+        slice_t item = string_lib_to_slice_chunk(str, offset, (str->len - offset));
         int ret = array_list_append_item_fn(allocator, &string_splits, (char *)&item);
         if (0 != ret) return (array_list_t){0};
     }
@@ -289,10 +296,35 @@ string_lib_split_string(arena_allocator_t *allocator, string_t *str, slice_t pat
 slice_t 
 string_lib_to_slice_chunk(const string_t *dst, size_t offset, size_t len)
 {
-    assert(((offset + len) < dst->len)&&"Slice is out of bounds");
+    assert(((offset + len) <= dst->len)&&"Slice is out of bounds");
     return (slice_t){
         .ptr = &(dst->ptr[offset]),
         .len_in_bytes = len
+    };
+}
+
+
+string_t
+string_lib_shrink_len(string_t *str, size_t shrink_len)
+{
+    assert((shrink_len <= str->len)&&"Shrink length should be less or equal than string length");
+    return (string_t){
+        .capacity = str->capacity,
+        .len = shrink_len,
+        .ptr = str->ptr
+    };
+}
+
+
+slice_t 
+string_lib_cstring_in_slice(string_t *str, slice_t *cstring_slice)
+{
+    assert((str->len < cstring_slice->len_in_bytes)&&"Slice cannot hold string");
+    memcpy(cstring_slice->ptr, str->ptr, str->len);
+    memset(cstring_slice->ptr + str->len, 0, cstring_slice->len_in_bytes - str->len);
+    return (slice_t){
+        .ptr = cstring_slice->ptr,
+        .len_in_bytes = str->len,
     };
 }
 
@@ -341,6 +373,7 @@ string_lib_sb_get_string(string_builder_t *sb, arena_allocator_t *allocator)
     }
     return (string_t){0};
 }
+
 
 
 
