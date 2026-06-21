@@ -12,12 +12,11 @@ main(int argc, char* argv[])
     if (NULL == context.allocator.linkedlist || NULL == context.temp_allocator.linkedlist) goto cleanup;
 
     array_list_t float_list = array_list_init_capacity(&(context.allocator), float, 10); // float_list: [dynamic]float
-    int ret;
     if (NULL == float_list.ptr) goto cleanup;
     float input_array[] = {8, 9, 10, 4.5, 0.7};
 
-    slice_t buf_slice = make_slice((void *)input_array, sizeof(input_array)); 
-    ret = array_list_append_slice_fn(&(context.allocator), &float_list, buf_slice);
+    int ret = array_list_append_slice_fn(
+        &(context.allocator), &float_list, make_slice((void *)input_array, sizeof(input_array)));
     if (0 != ret) goto cleanup;
 
     float *ptr = (float *)(float_list.ptr);
