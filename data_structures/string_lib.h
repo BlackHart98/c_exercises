@@ -64,6 +64,9 @@ string_lib_split_string(arena_allocator_t *allocator, string_t *str, slice_t pat
 STRING_LIB_LOCAL string_t
 string_lib_shrink_len(string_t *str, size_t shrink_len);
 
+STRING_LIB_LOCAL slice_t 
+string_lib_get_slice(string_t *str);
+
 typedef struct string_fragment_t {
     slice_t data;
     struct string_fragment_t *next;
@@ -326,6 +329,14 @@ string_lib_cstring_in_slice(string_t *str, slice_t *cstring_slice)
         .ptr = cstring_slice->ptr,
         .len_in_bytes = str->len,
     };
+}
+
+
+// This slice does not own memory
+slice_t 
+string_lib_get_slice(string_t *str)
+{
+    return (slice_t){ .ptr = str->ptr, .len_in_bytes = str->len };
 }
 
 
