@@ -238,7 +238,6 @@ main(void)
     printf("row count: %zu\n", row_data.len);
     for (size_t i = 0; i < row_data.len; i++) {
         string_t *value_list = (string_t *)row_list[i].values.ptr;
-        printf("value count: %zu\n", row_list[i].values.len);
         printf("hash: %d: ", row_list[i].hash);
         for (size_t j = 0; j < row_list[i].values.len; j++){
             char temp[64] = {0};
