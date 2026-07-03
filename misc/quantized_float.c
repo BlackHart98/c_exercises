@@ -118,7 +118,7 @@ main(void)
     printf("scale: %f, zero point: %d\n", q.scale, q.zero_point);
     fixed_point_t *ptr = q.slice.ptr;
     size_t Nq          = q.slice.len_in_bytes / sizeof(*ptr);
-    for (size_t i = 0; i < Nq; i++){
+    for (size_t i = 0; i < Nq; i++) {
         printf("q[%zu]: %d\n", i, ptr[i]);
     }
     printf("========================\n");
