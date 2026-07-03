@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define FRACTION_BITS 6
+#define FRACTION_BITS 14
 #define SCALE         (1 << FRACTION_BITS)
 
-typedef int8_t fixed_point_t; // q1.6
+typedef int16_t fixed_point_t; // q1.14
 
 
 fixed_point_t
@@ -16,7 +16,7 @@ fixed_point_to_float(fixed_point_t p);
 int
 main(void)
 {
-    float f = -1.597;
+    float f = -1.625;
     fixed_point_t fixed = float_to_fixed_point(f);
     printf("Floating point: %f, corresponding fixed point: %i\n", f, fixed);
     printf("Floating point after conversion: %f\n", fixed_point_to_float(fixed));
