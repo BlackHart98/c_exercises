@@ -130,5 +130,7 @@ main(void)
     for (size_t i = 0; i < Nf; i++) {
         printf("f[%zu]: %f\n", i, fptr[i]);
     }
+    printf("Size -> float: %zu, int: %zu\n", 
+        sizeof(float_arr), q.slice.len_in_bytes + sizeof(quantized_slice_t));
     return 0;
 }
