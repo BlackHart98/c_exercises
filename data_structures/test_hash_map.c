@@ -11,7 +11,7 @@ int
 main(int argc, char *argv[])
 {
     context_t context = context_init(KB(2), KB(1)); // I need to fix the API boundary of this object!
-    if (NULL == context.allocator.linkedlist || NULL == context.temp_allocator.linkedlist) goto cleanup;
+    if (!context_is_valid(&context)) goto cleanup;
     
     hash_map_t some_map = hash_map_init(&(context.allocator), NULL); // some_map: map[char[]]int
     int ret = HM_SUCCESS;

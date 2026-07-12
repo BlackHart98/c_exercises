@@ -9,11 +9,11 @@
 int 
 main(int argc, char* argv[])
 {
-    context_t context = context_init(MB(1), KB(512)); // I need to fix the API boundary of this object!
-    if (NULL == context.allocator.linkedlist || NULL == context.temp_allocator.linkedlist) goto cleanup;
+    context_t context = context_init(MB(1), KB(512));
+    if (!context_is_valid(&context)) goto cleanup;
 
     bitset_t my_bitset = bitset_init(&(context.allocator), 100);
-    if (NULL == my_bitset.bits) goto cleanup;
+    if (!bitset_is_valid(&my_bitset)) goto cleanup;
 
     printf("Bitset: %zu, %zu\n", my_bitset.size, my_bitset.len);
     bitset_add(&my_bitset, 30);

@@ -165,11 +165,17 @@ arena_allocator_resize_aligned(arena_allocator_t *arena_allocator, slice_t alloc
 ARENA_LOCAL slice_t
 arena_allocator_dup_aligned(arena_allocator_t *arena_allocator, slice_t input_slice, size_t alignment_);
 
-ARENA_LOCAL context_t 
+ARENA_LOCAL context_t
 context_init(size_t allocator_capacity, size_t temp_allocator_capacity);
 
-ARENA_LOCAL void 
+ARENA_LOCAL void
 context_deinit(context_t *ctx);
+
+ARENA_LOCAL inline int
+arena_allocator_is_valid(const arena_allocator_t *arena_allocator);
+
+ARENA_LOCAL inline int
+context_is_valid(const context_t *ctx);
 
 
 
@@ -439,11 +445,25 @@ context_init(size_t allocator_capacity, size_t temp_allocator_capacity)
     };
 }
 
-void 
+void
 context_deinit(context_t *ctx)
 {
     arena_allocator_deinit(&(ctx->allocator));
     arena_allocator_deinit(&(ctx->temp_allocator));
+}
+
+
+int
+arena_allocator_is_valid(const arena_allocator_t *arena_allocator)
+{
+    return NULL != arena_allocator->linkedlist;
+}
+
+
+int
+context_is_valid(const context_t *ctx)
+{
+    return arena_allocator_is_valid(&ctx->allocator) && arena_allocator_is_valid(&ctx->temp_allocator);
 }
 #endif
 

@@ -8,8 +8,8 @@
 int 
 main(int argc, char* argv[])
 {
-    context_t context = context_init(MB(1), KB(512)); // I need to fix the API boundary of this object!
-    if (NULL == context.allocator.linkedlist || NULL == context.temp_allocator.linkedlist) goto cleanup;
+    context_t context = context_init(MB(1), KB(512));
+    if (!context_is_valid(&context)) goto cleanup;
 
     array_list_t float_list = array_list_init_capacity(&(context.allocator), float, 10); // float_list: [dynamic]float
     if (NULL == float_list.ptr) goto cleanup;

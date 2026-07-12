@@ -105,45 +105,24 @@ hash_fn(string_t value);
 int 
 main(void)
 {
-    context_t context = context_init(MB(1), KB(512)); // I need to fix the API boundary of this object!
-    if (NULL == context.allocator.linkedlist || NULL == context.temp_allocator.linkedlist) goto cleanup;
+    context_t context = context_init(MB(1), KB(512));
+    if (!context_is_valid(&context)) goto cleanup;
 
     /* ============================================================
     * users table
     * ============================================================ */
 
     test_column_t users_columns[] = {
-        {
-            .name = "id",
-            .type = "INTEGER",
-            .nullable = false,
-        },
-        {
-            .name = "name",
-            .type = "TEXT",
-            .nullable = false,
-        },
+        {.name = "id", .type = "INTEGER", .nullable = false,},
+        {.name = "name", .type = "TEXT", .nullable = false,},
     };
 
-    const char *users_row1_values[] = {
-        "1",
-        "Alice",
-    };
-
-    const char *users_row2_values[] = {
-        "2",
-        "Bob",
-    };
+    const char *users_row1_values[] = {"1", "Alice",};
+    const char *users_row2_values[] = {"2", "Bob",};
 
     test_row_t users_rows[] = {
-        {
-            .values = users_row1_values,
-            .value_count = 2,
-        },
-        {
-            .values = users_row2_values,
-            .value_count = 2,
-        },
+        {.values = users_row1_values, .value_count = 2,},
+        {.values = users_row2_values, .value_count = 2,},
     };
 
     /* ============================================================
@@ -151,44 +130,18 @@ main(void)
     * ============================================================ */
 
     test_column_t products_columns[] = {
-        {
-            .name = "id",
-            .type = "INTEGER",
-            .nullable = false,
-        },
-        {
-            .name = "name",
-            .type = "TEXT",
-            .nullable = false,
-        },
-        {
-            .name = "price",
-            .type = "REAL",
-            .nullable = false,
-        },
+        {.name = "id", .type = "INTEGER", .nullable = false,},
+        {.name = "name", .type = "TEXT", .nullable = false,},
+        {.name = "price", .type = "REAL", .nullable = false,},
     };
 
-    const char *products_row1_values[] = {
-        "1",
-        "Keyboard",
-        "100.50",
-    };
+    const char *products_row1_values[] = {"1", "Keyboard", "100.50"};
 
-    const char *products_row2_values[] = {
-        "2",
-        "Mouse",
-        "35.75",
-    };
+    const char *products_row2_values[] = {"2", "Mouse", "35.75",};
 
     test_row_t products_rows[] = {
-        {
-            .values = products_row1_values,
-            .value_count = 3,
-        },
-        {
-            .values = products_row2_values,
-            .value_count = 3,
-        },
+        {.values = products_row1_values, .value_count = 3,},
+        {.values = products_row2_values, .value_count = 3,},
     };
 
     /* ============================================================
@@ -196,33 +149,11 @@ main(void)
     * ============================================================ */
 
     test_table_t tables[] = {
-        {
-            .name = "users",
-
-            .columns = users_columns,
-            .column_count = 2,
-
-            .rows = users_rows,
-            .row_count = 2,
-        },
-
-        {
-            .name = "products",
-
-            .columns = products_columns,
-            .column_count = 3,
-
-            .rows = products_rows,
-            .row_count = 2,
-        },
+        {.name = "users", .columns = users_columns, .column_count = 2, .rows = users_rows, .row_count = 2,},
+        {.name = "products", .columns = products_columns, .column_count = 3, .rows = products_rows, .row_count = 2,},
     };
 
-    test_database_t database = {
-        .dialect = "sqlite",
-
-        .tables = tables,
-        .table_count = 2,
-    };
+    test_database_t database = {.dialect = "sqlite", .tables = tables, .table_count = 2,};
 
     manifest_t manifest   = {0};
     array_list_t row_data = array_list_init_capacity(&(context.allocator), row_t, 100); // [dynamic]row_t

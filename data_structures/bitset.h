@@ -40,6 +40,10 @@ BITSET_LOCAL void
 bitset_clear(bitset_t *bitset);
 
 
+BITSET_LOCAL int
+bitset_is_valid(const bitset_t *bitset);
+
+
 #ifdef BITSET_IMPLEMENTATION
 
 bitset_t
@@ -62,6 +66,7 @@ void
 bitset_add(bitset_t *bitset, size_t item)
 {
     assert((NULL != bitset)&&"Bitset is NULL");
+    assert((bitset->len > item)&&"Query item should be 0 <= item < bitset->len");
     size_t index = item / 8;
     size_t sub_str_index = (bitset->len - (index * 8)) - (bitset->len - item);
     bitset->bits[index] |= (unsigned char)(MSB >> sub_str_index);
@@ -83,9 +88,10 @@ void
 bitset_toggle(bitset_t *bitset, size_t item)
 {
     assert((NULL != bitset)&&"Bitset is NULL");
+    assert((bitset->len > item)&&"Query item should be 0 <= item < bitset->len");
     size_t index = item / 8;
     size_t sub_str_index = (bitset->len - (index * 8)) - (bitset->len - item);
-    bitset->bits[index] &= ~(unsigned char)(MSB >> sub_str_index);
+    bitset->bits[index] ^= (unsigned char)(MSB >> sub_str_index);
 }
 
 
@@ -93,6 +99,13 @@ void
 bitset_clear(bitset_t *bitset)
 {
     memset(bitset->bits, 0, bitset->size);
+}
+
+
+int
+bitset_is_valid(const bitset_t *bitset)
+{
+    return NULL != bitset->bits;
 }
 
 
