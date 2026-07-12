@@ -8,14 +8,24 @@ typedef struct _ring_buffer{
 } ring_buffer_t;
 
 
-void ring_buffer_create(ring_buffer_t * );
-int ring_buffer_enqueue(ring_buffer_t *, int);
-int ring_buffer_dequeue(ring_buffer_t * );
-int ring_buffer_peek(ring_buffer_t *, int *);
+void 
+ring_buffer_create(ring_buffer_t * );
+
+int 
+ring_buffer_enqueue(ring_buffer_t *, int);
+
+int 
+ring_buffer_dequeue(ring_buffer_t * );
+
+
+int 
+ring_buffer_peek(ring_buffer_t *, int *);
 
 
 
-int main(int argc, char* argv[]){
+int 
+main(int argc, char* argv[])
+{
     ring_buffer_t my_ring_buffer;
     ring_buffer_create(&my_ring_buffer);
 
@@ -37,20 +47,26 @@ int main(int argc, char* argv[]){
 }
 
 
-void ring_buffer_create(ring_buffer_t * ring_buffer){
+void 
+ring_buffer_create(ring_buffer_t * ring_buffer)
+{
     ring_buffer->read_head = 0;
     ring_buffer->write_head = 0;
 }
 
 
-int ring_buffer_dequeue(ring_buffer_t * ring_buffer){
+int 
+ring_buffer_dequeue(ring_buffer_t * ring_buffer)
+{
     if (ring_buffer->read_head == ring_buffer->write_head) return -1;
     ring_buffer->read_head = ((ring_buffer->read_head + 1) % BUFFER_SIZE);
     return 1;
 }
 
 
-int ring_buffer_enqueue(ring_buffer_t * ring_buffer, int item){
+int 
+ring_buffer_enqueue(ring_buffer_t * ring_buffer, int item)
+{
     int next_idx = ((ring_buffer->write_head + 1) % BUFFER_SIZE);
     if (next_idx == ring_buffer->read_head) return -1;
     ring_buffer->buffer[ring_buffer->write_head] = item;
@@ -59,7 +75,9 @@ int ring_buffer_enqueue(ring_buffer_t * ring_buffer, int item){
 }
 
 
-int ring_buffer_peek(ring_buffer_t * ring_buffer, int * item){
+int 
+ring_buffer_peek(ring_buffer_t * ring_buffer, int * item)
+{
     if (ring_buffer->write_head == ring_buffer->read_head) return -1;
     *item = ring_buffer->buffer[ring_buffer->read_head];
     return 1;
