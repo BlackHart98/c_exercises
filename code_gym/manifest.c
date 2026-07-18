@@ -101,9 +101,12 @@ generate_state_from_sqlite(
 hash_t 
 hash_fn(string_t value);
 
+hash_t
+row_hash_fn(arena_allocator_t *allocator, array_list_t *row_entry);
+
 
 int 
-main(void)
+main(int argc, char *argv[])
 {
     context_t context = context_init(MB(1), KB(512));
     if (!context_is_valid(&context)) goto cleanup;
@@ -195,7 +198,7 @@ generate_state_from_sqlite(
     assert((NULL != db)&&"Database cannot be NULL");
     manifest->schema_snapshot.dialect = string_lib_init_with_strlit(&(context->allocator), db->dialect);
     array_list_t temp_schema_list     = array_list_init_capacity(&(context->allocator), table_t, 10); // [dynamic]table_t
-    array_list_t temp_data_list       = array_list_init_capacity(&(context->allocator), hash_t, 10); // [dynamic]table_t
+    array_list_t temp_data_list       = array_list_init_capacity(&(context->allocator), hash_t, 10); // [dynamic]hash_t
     if (NULL == temp_schema_list.ptr || NULL == manifest->schema_snapshot.dialect.ptr || NULL == temp_data_list.ptr) {result = 0; goto cleanup;}
     for (size_t i = 0; i < db->table_count; i++) {
         table_t temp         = {0};
@@ -236,7 +239,7 @@ generate_state_from_sqlite(
             row_t row = (row_t){.hash = hash_fn((string_t){0}), .values = row_entry};
             ret       = array_list_append_item_fn(&(context->allocator), row_data, (const char*)&row);
             if (0 != ret) {result = 0; goto cleanup;}
-            hash_t hash = hash_fn((string_t){0});
+            hash_t hash = row_hash_fn(&(context->temp_allocator), &row_entry);
             ret         = array_list_append_item_fn(&(context->allocator), &row_hashes, (const char *)&hash);
             if (0 != ret) {result = 0; goto cleanup;}
         }
@@ -261,4 +264,14 @@ hash_t
 hash_fn(string_t value)
 {
     return 2; // arbitrary number, should be the hash of particular objects (as concatenated string)
+}
+
+
+hash_t
+row_hash_fn(arena_allocator_t *allocator, array_list_t *row_entry)
+{
+    (void)*allocator;
+    (void)*row_entry; // [dynamic]string_t
+    printf("=========== hash (%zu) ===========\n", row_entry->len);
+    return 2;
 }
