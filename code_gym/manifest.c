@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 
     const char *products_row1_values[] = {"1", "Keyboard", "100.50"};
 
-    const char *products_row2_values[] = {"2", "Mouse", "35.75",};
+    const char *products_row2_values[] = {"2", "Mouse", "35.75"};
 
     test_row_t products_rows[] = {
         {.values = products_row1_values, .value_count = 3,},
