@@ -70,7 +70,7 @@ ring_buffer_dequeue(ring_buffer_t *ring_buffer, char *res)
     assert((NULL != ring_buffer)&&"Ring cannot be null");
     uint64_t N = ring_buffer->len;
     uint64_t T = ring_buffer->type;
-    if (ring_buffer->count == N) return false;
+    if (ring_buffer->count == 0) return false;
     
     memcpy(res, ring_buffer->buf + (ring_buffer->read_head * T), T);
     ring_buffer->read_head = ((ring_buffer->read_head + 1) % N);

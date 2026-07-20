@@ -92,8 +92,8 @@ main(void)
 {
     context_t context = context_init(KB(50), KB(10));
     if (!context_is_valid(&context)) goto cleanup;
-    job_t buf[20]      = {0};
-    size_t num_threads = 4;
+    job_t buf[3]      = {0};
+    size_t num_threads = 3;
     thread_pool_t tp   = thread_pool_init(&(context.allocator), num_threads, job_t, (char *)buf, sizeof(buf) / sizeof(job_t));
     if (!thread_pool_is_valid(&tp)) goto cleanup;
     if (!thread_pool_start(&tp))    goto cleanup;
@@ -108,18 +108,11 @@ main(void)
         (job_t){ .function = bar,    .arg = NULL },
         (job_t){ .function = foobar, .arg = NULL },
         (job_t){ .function = bar,    .arg = NULL },
-        (job_t){ .function = bar,    .arg = NULL },
-        (job_t){ .function = foobar, .arg = NULL },
-        (job_t){ .function = bar,    .arg = NULL },
-        (job_t){ .function = bar,    .arg = NULL },
-        (job_t){ .function = foobar, .arg = NULL },
-        (job_t){ .function = bar,    .arg = NULL },
-        (job_t){ .function = bar,    .arg = NULL },
     };
 
     for (size_t i = 0; i < (size_t)(sizeof(jobs) / sizeof(job_t)); i++){
         if (!thread_pool_add_work(&tp, jobs[i])) {
-            goto cleanup;
+            printf("Could not add work\n");
         }
     }
 
@@ -172,10 +165,14 @@ void
 thread_pool_deinit(thread_pool_t *tp)
 {
     assert((NULL != tp)&&"Thread pool cannot be null");
-    volatile int threads_total = tp->num_threads_alive;
 
     THREADS_KEEPALIVE = 0;
-    thread_pool_wait(tp);
+    pthread_mutex_lock(&(tp->pool_lock));
+    pthread_cond_broadcast(&(tp->has_job));
+    while (tp->num_threads_alive > 0) {
+        pthread_cond_wait(&(tp->all_idle), &(tp->pool_lock));
+    }
+    pthread_mutex_unlock(&(tp->pool_lock));
 
     pthread_mutex_destroy(&(tp->pool_lock));
     pthread_cond_destroy(&(tp->all_idle));
@@ -223,7 +220,7 @@ thread_pool_do(thpool_arg_t *self)
 
     while (THREADS_KEEPALIVE) {
         pthread_mutex_lock(&(tp->pool_lock));
-        while (ring_buffer_empty(&(tp->job_queue))){
+        while (THREADS_KEEPALIVE && ring_buffer_empty(&(tp->job_queue))){
             pthread_cond_wait(&(tp->has_job), &(tp->pool_lock));
         }
         pthread_mutex_unlock(&(tp->pool_lock));
@@ -255,6 +252,7 @@ thread_pool_do(thpool_arg_t *self)
 
     pthread_mutex_lock(&tp->pool_lock);
 	tp->num_threads_alive -= 1;
+	pthread_cond_signal(&(tp->all_idle));
 	pthread_mutex_unlock(&tp->pool_lock);
     return NULL;
 }
