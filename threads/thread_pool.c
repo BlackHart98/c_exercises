@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 {
     context_t context = context_init(KB(50), KB(10));
     if (!context_is_valid(&context)) goto cleanup;
-    job_t buf[3]      = {0};
+    job_t buf[3]       = {0};
     size_t num_threads = 3;
     thread_pool_t tp   = thread_pool_init(&(context.allocator), num_threads, job_t, (char *)buf, sizeof(buf) / sizeof(job_t));
     if (!thread_pool_is_valid(&tp)) goto cleanup;
