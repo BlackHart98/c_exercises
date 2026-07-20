@@ -5,17 +5,20 @@
 #include "../memory_management/why_so_arena.c"
 #include "../data_structures/thread_pool.h"
 
-void foo(void *v)
+void 
+foo(void *v)
 {
     printf("Hello thread pool: foo\n");
 }
 
-void foobar(void *v)
+void 
+foobar(void *v)
 {
     printf("Hello thread pool: foobar\n");
 }
 
-void bar(void *v)
+void
+bar(void *v)
 {
     printf("Hello thread pool: bar\n");
 }
