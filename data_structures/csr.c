@@ -35,6 +35,14 @@ main(void)
     int row = 4;
     int col = 4;
 
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            double item = *(matrix + (i * row + j));
+            printf("%f| ", item);
+        }
+        printf("\n");
+    }
+
     sparse_matrix_t csr = {0};
     int ret = matrix_to_csr(matrix, row, col, &csr);
     if (ret != CSR_SUCCEEDED) goto cleanup;
@@ -64,10 +72,8 @@ matrix_to_csr(double* matrix, int row, int col, sparse_matrix_t *csr)
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             double item = *(matrix + (i * row + j));
-            printf("%f| ", item);
             if (item != (double)0) nz_len += 1;
         }
-        printf("\n");
     }
 
     csr->values  = (double *)calloc(nz_len, sizeof(double));
