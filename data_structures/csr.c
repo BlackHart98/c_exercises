@@ -52,6 +52,29 @@ main(void)
     }
     printf("\n");
 
+    printf("---------------------------\n");
+    for (int i = 0; i < csr.nz_len; i++) {
+        printf("%f | ", csr.values[i]);
+    }
+    printf("\n");
+
+    printf("---------------------------\n");
+    for (int i = 0; i < csr.nz_len; i++) {
+        printf("%i | ", csr.col_idx[i]);
+    }
+    printf("\n");
+
+    printf("---------------------------\n");
+    for (int i = 0; i < csr.row_len - 1; i++) {
+        printf("BEGIN ROW %i\n", i);
+        for (int j = csr.row_ptr[i]; j < csr.row_ptr[i + 1]; j++) {
+            printf("%f | ", csr.values[j]);
+        }
+        if (csr.row_ptr[i] != csr.row_ptr[i + 1]) printf("\n");
+        printf("END ROW %i\n", i);
+        printf("========================\n");
+    }
+
 cleanup:
     if (ret != CSR_SUCCEEDED) {
         printf("CSR failed!\n");
